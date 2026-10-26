@@ -4,8 +4,18 @@ A native macOS menu bar application that reads UPS measurements through
 Network UPS Tools (NUT). Version 0.1.3 adds an exclusive process lock to prevent
 two copies from appending to the same history.
 
-This is a locally prepared source candidate. Publication and the project license
-are pending owner approval. See [license options](docs/LICENSE-OPTIONS.md).
+This is a locally prepared source candidate licensed under the [MIT License](LICENSE).
+Publication remains on hold pending separate PUBLIC-01B owner approval.
+
+## Author
+
+Pavel Kokarev, CEO, Alma-Soft.
+
+## License
+
+MIT License. Copyright (c) 2026 Pavel Kokarev.
+See [LICENSE](LICENSE) for the full terms and the
+[license decision](docs/LICENSE-OPTIONS.md) for publication status.
 
 ## Features
 

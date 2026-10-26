@@ -1,8 +1,9 @@
 # PUBLIC-01A local preparation
 
 Status: local source preparation completed. Publication remains on strict hold.
-The owner must select a license, confirm source distribution rights and grant
-separate PUBLIC-01B authorization before any remote repository is created.
+The owner has approved MIT with Copyright (c) 2026 Pavel Kokarev; the standard
+text is included in LICENSE. Separate PUBLIC-01B authorization is still required
+before any remote repository is created.
 
 ## Inputs and changes
 
@@ -56,6 +57,6 @@ installed binary and active LaunchAgent were unchanged. The pre-check history
 prefix remained intact while the existing application continued normal append
 operations with the same PID.
 
-Before publication: resolve the pending project license and copyright holder,
-review the final file list, then obtain PUBLIC-01B. No remote, release, binary
-upload or publication is part of PUBLIC-01A.
+The license and copyright holder are finalized. Before publication, review the
+final file list and obtain separate PUBLIC-01B authorization. No remote, release,
+binary upload or publication is part of PUBLIC-01A.

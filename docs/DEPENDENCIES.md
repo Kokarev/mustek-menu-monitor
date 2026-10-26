@@ -5,9 +5,9 @@
 The package contains eight application Swift files, three XCTest files, its
 package manifest and a local bundle build script. No vendored libraries,
 third-party packages, copied license notices or binary assets were found in
-the supplied source tree. The supplied project did not include a LICENSE file.
-This file-level inventory does not establish the authorship history of every
-line; the owner must confirm distribution rights before publication.
+the supplied source tree. The supplied project originally had no LICENSE file;
+the owner has since approved MIT with Copyright (c) 2026 Pavel Kokarev, and the
+standard text is now included in [LICENSE](../LICENSE).
 
 ## Build and system dependencies
 
@@ -34,4 +34,4 @@ states that most files are GPL-2.0-or-later, with component-specific exceptions.
 No NUT code, executable, driver or user configuration is redistributed in this
 source candidate. If future packaging bundles NUT or imports its source,
 stop and review the licenses of the exact components before distribution.
-This inventory does not choose or change the monitor project's license.
+NUT's separate licenses do not replace the monitor project's approved MIT License.

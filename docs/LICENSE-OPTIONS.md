@@ -1,22 +1,17 @@
-# Owner decision pending
+# Approved license decision
 
-No project license is selected or granted by this preparation. No LICENSE file
-or SPDX license header has been added. Publication remains on hold until the
-owner selects terms and confirms the right to distribute the supplied source.
+On 2026-10-26, the owner approved the MIT License for MUSTEK Menu Monitor
+under GO-PUBLIC-01A / LICENSE FINALIZATION.
 
-Options to consider:
+- License: MIT; the full standard text is in [LICENSE](../LICENSE).
+- Copyright: Copyright (c) 2026 Pavel Kokarev.
+- Author: Pavel Kokarev, CEO, Alma-Soft.
 
-| Option | Main effect | Suitable intent |
-| --- | --- | --- |
-| [MIT](https://opensource.org/license/mit) | Broad reuse with preservation of copyright and permission notices | Simple, permissive sharing of a small utility |
-| [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | Permissive reuse, explicit contributor patent grant and redistribution conditions | Prefer explicit patent terms |
-| [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html) | Copyleft conditions when distributing covered modifications | Require covered distributed derivatives to remain under GPL terms |
+The position appears in the README Author section, not in the legal license
+text. This decision supersedes the earlier pending license options.
 
-Recommendation for owner review: MIT if straightforward permissive reuse is
-the goal. Apache-2.0 or GPL-3.0 are alternatives with different obligations.
-NUT's separate licenses are documented in DEPENDENCIES.md; its use as an
-external executable does not itself select this project's license.
+NUT remains a separately installed dependency with its own licenses; see
+[DEPENDENCIES.md](DEPENDENCIES.md).
 
-Before PUBLIC-01B, choose a license, specify the intended copyright holder,
-confirm source provenance, and add the chosen license text. Do not invent a
-copyright identity from a local username or Git configuration.
+License approval does not authorize publication. PUBLIC-01B remains on HOLD:
+no remote repository creation, push or GitHub Release without separate GO.
