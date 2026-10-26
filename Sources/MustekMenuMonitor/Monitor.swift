@@ -3,6 +3,8 @@ import Foundation
 
 /// State of the link to NUT as last observed.
 enum LinkState: Equatable {
+    /// No UPS name, or connection settings are invalid; upsc is not run.
+    case notConfigured
     /// No poll has finished yet.
     case waiting
     /// Last poll returned a valid reading, recent enough to show.
@@ -25,14 +27,38 @@ enum LinkState: Equatable {
     }
 }
 
+/// What one poll runs: upsc executable and NUT target.
+struct UpscConnection: Equatable {
+    let path: String
+    let target: String
+
+    /// nil when the settings do not yield a usable target.
+    init?(_ settings: Settings) {
+        guard case .success(let target) = settings.nutTarget() else { return nil }
+        if let path = settings.upscPath {
+            guard path.hasPrefix("/"), !path.contains("\0") else { return nil }
+            self.path = path
+        } else {
+            self.path = Upsc.fallbackPath
+        }
+        self.target = target
+    }
+}
+
+typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> UpscOutcome
+
 @MainActor final class Monitor {
     /// A reading older than this is no longer shown as current.
     static let staleAfter: TimeInterval = 15
     static let historyHeader = "timestamp,status,input_V,output_V,load_percent,estimated_W,delta_Wh,battery_V\n"
 
+    private(set) var settings: Settings
+    private(set) var connection: UpscConnection?
+    /// Bumped on every connection change; a poll started under an older value is discarded.
+    private(set) var generation = 0
     /// Last valid reading. Shown only through `freshReading`.
     private(set) var reading: Reading?
-    private(set) var link: LinkState = .waiting
+    private(set) var link: LinkState
     /// Time of the last valid reading; a started but failed upsc call does not move it.
     private(set) var lastSuccess: Date?
     private(set) var todayWh: Double = 0
@@ -53,6 +79,7 @@ enum LinkState: Equatable {
     private let iso = ISO8601DateFormatter()
     private let historyDirectory: URL
     private let events: PowerEventLog
+    private let runUpsc: UpscRunner
 
     var historyURL: URL {
         try? fm.createDirectory(at: historyDirectory, withIntermediateDirectories: true)
@@ -68,7 +95,13 @@ enum LinkState: Equatable {
             .appendingPathComponent("Library/Application Support/MustekMenuMonitor", isDirectory: true)
     }
 
-    init(historyDirectory: URL? = nil) {
+    /// Default settings have no UPS name, so a monitor built without them stays not configured.
+    init(settings: Settings = Settings(), historyDirectory: URL? = nil,
+         runUpsc: @escaping UpscRunner = { await Upsc.run(path: $0, target: $1) }) {
+        self.settings = settings
+        connection = UpscConnection(settings)
+        link = connection == nil ? .notConfigured : .waiting
+        self.runUpsc = runUpsc
         let directory = historyDirectory ?? Self.defaultDirectory
         self.historyDirectory = directory
         events = PowerEventLog(url: directory.appendingPathComponent("power_events.csv"))
@@ -87,19 +120,44 @@ enum LinkState: Equatable {
         self.timer = timer
     }
 
-    private func poll() {
+    /// Replaces the settings. A changed connection starts a new generation: the integration
+    /// chain and last reading are dropped, the link waits, and a poll starts at once if running.
+    func apply(_ settings: Settings) {
+        self.settings = settings
+        let next = UpscConnection(settings)
+        guard next != connection else { return }
+        connection = next
+        generation += 1
+        // The in-flight poll belongs to the old generation; its result will be discarded.
+        isPolling = false
+        previous = nil
+        reading = nil
+        lastSuccess = nil
+        link = next == nil ? .notConfigured : .waiting
+        onChange?()
+        if timer != nil { poll() }
+    }
+
+    /// One poll; the timer calls it every five seconds. Returns the started task for tests.
+    @discardableResult
+    func poll() -> Task<Void, Never>? {
         let now = Date()
         // Day/month rollover and staleness are applied even when no sample arrives.
         rollTotalsIfNeeded(now: now)
         checkStaleness(now: now)
+        guard let connection else { return nil }
         // A slow upsc must not stack up overlapping polls.
-        guard !isPolling else { return }
-        guard fm.isExecutableFile(atPath: Upsc.path) else {
-            fail(.noResponse("upsc не найден")); return
+        guard !isPolling else { return nil }
+        guard fm.isExecutableFile(atPath: connection.path) else {
+            fail(.noResponse("upsc не найден")); return nil
         }
         isPolling = true
-        Task {
-            let outcome = await Upsc.run()
+        let started = generation
+        let run = runUpsc
+        return Task {
+            let outcome = await run(connection.path, connection.target)
+            // A late answer for a replaced connection must not touch state or history.
+            guard started == generation else { return }
             handle(outcome, at: Date())
             isPolling = false
         }

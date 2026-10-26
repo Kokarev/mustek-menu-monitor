@@ -140,39 +140,46 @@ final class SettingsValidationTests: XCTestCase {
     }
 }
 
-/// Uniquely named defaults suite for one test; `discard` also deletes the empty plist
-/// that cfprefsd leaves in ~/Library/Preferences after the domain is removed.
-struct TestDefaults {
-    let name = "test.mustek.settings.\(UUID().uuidString)"
-    let defaults: UserDefaults
-
-    init() throws { defaults = try XCTUnwrap(UserDefaults(suiteName: name)) }
-
-    func discard() {
-        defaults.removePersistentDomain(forName: name)
-        CFPreferencesAppSynchronize(name as CFString)
-        let file = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Preferences/\(name).plist")
-        try? FileManager.default.removeItem(at: file)
-    }
+/// In-memory backend. Uniquely named UserDefaults suites cannot be cleaned up reliably:
+/// cfprefsd writes an empty plist for a removed domain after the test has finished.
+final class InMemoryDefaults: SettingsBackend {
+    private(set) var values: [String: Any] = [:]
+    func object(forKey defaultName: String) -> Any? { values[defaultName] }
+    func set(_ value: Any?, forKey defaultName: String) { values[defaultName] = value }
+    func removeObject(forKey defaultName: String) { values[defaultName] = nil }
+    func string(forKey defaultName: String) -> String? { values[defaultName] as? String }
 }
 
 final class SettingsStoreTests: XCTestCase {
     /// The installed application's domain; tests must never write to it.
     static let productionDomain = "local.mustek.menumanager"
 
-    private var suite: TestDefaults!
-    private var defaults: UserDefaults { suite.defaults }
+    /// The one real suite used by tests; a fixed name keeps at most one empty plist on disk.
+    static let testSuite = "test.mustek.settings"
+
+    private var defaults: InMemoryDefaults!
     private var store: SettingsStore!
 
-    override func setUpWithError() throws {
-        suite = try TestDefaults()
-        XCTAssertNotEqual(suite.name, Self.productionDomain)
+    override func setUp() {
+        defaults = InMemoryDefaults()
         store = SettingsStore(defaults: defaults)
     }
 
-    override func tearDown() {
-        suite.discard()
+    func testRealUserDefaultsSuiteRoundTrip() throws {
+        XCTAssertNotEqual(Self.testSuite, Self.productionDomain)
+        let suite = try XCTUnwrap(UserDefaults(suiteName: Self.testSuite))
+        suite.removePersistentDomain(forName: Self.testSuite)
+        defer { suite.removePersistentDomain(forName: Self.testSuite) }
+        let settings = Settings(upsName: "mustek", host: "nut.example.org", port: 3500,
+                                upscPath: "/opt/homebrew/bin/upsc", ratedWatts: 650.5)
+        try SettingsStore(defaults: suite).save(settings)
+        let reopened = try XCTUnwrap(UserDefaults(suiteName: Self.testSuite))
+        let result = SettingsStore(defaults: reopened).load()
+        XCTAssertEqual(result.settings, settings)
+        XCTAssertEqual(result.missing, [])
+        XCTAssertEqual(result.issues, [])
+        suite.set(true, forKey: SettingsStore.Key.port.rawValue)
+        XCTAssertEqual(SettingsStore(defaults: suite).load().issues, [.storedValueCorrupted(.port)])
     }
 
     func testEmptyStoreLoadsDefaultsAndReportsAllKeysMissing() {
@@ -287,9 +294,7 @@ final class SettingsStoreTests: XCTestCase {
 
     func testSuitesAreIsolatedAndProductionDomainIsUntouched() throws {
         let production = UserDefaults.standard.persistentDomain(forName: Self.productionDomain) as NSDictionary?
-        let otherSuite = try TestDefaults()
-        let other = otherSuite.defaults
-        defer { otherSuite.discard() }
+        let other = InMemoryDefaults()
 
         try store.save(Settings(upsName: "first", ratedWatts: 400))
         try SettingsStore(defaults: other).save(Settings(upsName: "second"))

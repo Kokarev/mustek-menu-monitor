@@ -2,9 +2,14 @@ import AppKit
 
 /// Owns the status item and wires monitor updates to the menu.
 @MainActor final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private let monitor = Monitor()
+    private let monitor: Monitor
     private var statusItem: NSStatusItem?
     private var content: MenuContent?
+
+    init(settings: Settings) {
+        monitor = Monitor(settings: settings)
+        super.init()
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -46,7 +51,9 @@ import AppKit
             exit(1)
         }
         let app = NSApplication.shared
-        let delegate = AppDelegate()
+        // Read only; nothing is written until a settings window exists. Without a stored
+        // UPS name the app starts not configured and never runs upsc.
+        let delegate = AppDelegate(settings: SettingsStore(defaults: UserDefaults.standard).load().settings)
         app.delegate = delegate
         app.setActivationPolicy(.accessory)
         withExtendedLifetime((delegate, lock)) { app.run() }

@@ -18,12 +18,14 @@ private final class TimeoutFlag: @unchecked Sendable {
 
 /// Read-only access to NUT through the installed `upsc` client.
 enum Upsc {
-    static let path = "/opt/homebrew/opt/nut/bin/upsc"
-    static let target = "demo-ups@127.0.0.1:3493"
+    /// TEMPORARY (until automatic discovery, M3): used when Settings.upscPath is nil.
+    /// Homebrew's location on Apple Silicon only.
+    static let fallbackPath = "/opt/homebrew/opt/nut/bin/upsc"
     static let timeout: TimeInterval = 3
 
     /// Runs upsc on a background queue; the main thread never waits for it.
-    static func run(path: String = path, target: String = target, timeout: TimeInterval = timeout) async -> UpscOutcome {
+    /// `target` is passed as a single argument, never through a shell.
+    static func run(path: String, target: String, timeout: TimeInterval = timeout) async -> UpscOutcome {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 let process = Process()

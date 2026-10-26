@@ -129,6 +129,15 @@ extension Settings {
     }
 }
 
+/// The part of `UserDefaults` the store uses; tests can supply an in-memory one.
+protocol SettingsBackend {
+    func object(forKey defaultName: String) -> Any?
+    func set(_ value: Any?, forKey defaultName: String)
+    func removeObject(forKey defaultName: String)
+}
+
+extension UserDefaults: SettingsBackend {}
+
 /// Reads and writes `Settings` in an injected `UserDefaults`; there is no implicit default domain.
 struct SettingsStore {
     enum Key: String, CaseIterable {
@@ -162,9 +171,9 @@ struct SettingsStore {
         case invalid([SettingsIssue])
     }
 
-    let defaults: UserDefaults
+    let defaults: SettingsBackend
 
-    init(defaults: UserDefaults) { self.defaults = defaults }
+    init(defaults: SettingsBackend) { self.defaults = defaults }
 
     /// Never fails: a wrong type or invalid stored value falls back to that field's default.
     /// The upsc file itself is not checked here, so a temporarily missing upsc keeps the user's choice.

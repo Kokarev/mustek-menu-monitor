@@ -107,6 +107,7 @@ struct MenuModel: Equatable {
 
     static func stateText(link: LinkState, reading r: Reading?) -> String {
         switch link {
+        case .notConfigured: return "⚙️ ИБП не настроен"
         case .waiting: return "⏳ Ожидание данных"
         case .stale: return "🟡 Данные устарели"
         case .noResponse: return "🔴 Нет ответа NUT"
@@ -127,6 +128,7 @@ struct MenuModel: Equatable {
 
     static func linkText(_ link: LinkState) -> String {
         switch link {
+        case .notConfigured: return "не настроен"
         case .waiting: return "ожидание"
         case .ok: return "подключён"
         case .stale: return "данные устарели"
