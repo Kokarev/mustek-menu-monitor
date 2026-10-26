@@ -70,10 +70,12 @@ is a demonstration value. The default executable path is Homebrew's Apple
 Silicon path, `/opt/homebrew/opt/nut/bin/upsc`. Intel or other installations may
 use another path. There is no settings UI or environment override in 0.1.3.
 
-`BatteryProfile.installed` in `Battery.swift` is a demonstration GEL profile
-(12 V, 9 Ah, example date 2000-01-01). Replace it with your own data before use.
-The public candidate has sanitized profile data and synthetic test values; it
-is not a byte-identical copy of an existing installed build.
+Battery voltage, charge and remaining runtime are displayed only when reported
+by NUT (`battery.voltage`, `battery.charge`, `battery.runtime` in seconds).
+Missing values are shown as "Нет данных" (No data), with zero kept distinct from
+absence. There is no built-in battery profile, installation date, nominal
+capacity, replacement schedule or battery-life model. Tests use synthetic data;
+this source is not a byte-identical copy of an existing installed build.
 
 Follow [installation and optional login startup](docs/INSTALL.md). NUT must
 already be configured independently; no user NUT configurations are included.
@@ -94,8 +96,8 @@ Set the UPS nominal output power in watts in Settings. Estimated power is
 are left empty; historical Wh remain visible. Changing the rating breaks the
 integration chain without rewriting history. A configured zero load records
 zero watts. Load percentage may not represent true watts; energy is not a utility meter
-reading and excludes UPS conversion losses. Charge and remaining runtime are
-not calibrated. A 10.5 V battery value is only a reference, not a control limit.
+reading and excludes UPS conversion losses. Charge and remaining runtime are NUT-reported values; this app does not derive
+them from voltage or estimate battery age, health or a replacement date.
 Missing samples and downtime are not backfilled. After a monitoring gap, outage
 duration can be a lower bound. CSV files have no rotation and are read into
 memory at startup; write failures are not surfaced as a dedicated UI error.

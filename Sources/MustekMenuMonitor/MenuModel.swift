@@ -42,9 +42,9 @@ struct MenuModel: Equatable {
     let note: String
 
     static let unavailable = "—"
-    static let notCalibrated = "не откалиброван"
+    static let noData = "Нет данных"
 
-    static func make(_ s: MonitorSnapshot, battery: BatteryProfile = .installed) -> MenuModel {
+    static func make(_ s: MonitorSnapshot) -> MenuModel {
         // Values are shown only while the link is healthy; otherwise every reading shows a dash.
         let r = s.link == .ok ? s.reading : nil
         let dash = unavailable
@@ -62,15 +62,11 @@ struct MenuModel: Equatable {
                     MenuRow(label: "Нагрузка", value: Format.value(r?.load, "%", digits: 0...1, space: false)),
                     MenuRow(label: "Мощность", value: s.ratedWatts == nil ? "не настроена" : Format.value(r?.estimatedWatts(ratedWatts: s.ratedWatts), "Вт", digits: 0, approx: true)),
                 ]),
-                MenuSection(title: "Аккумулятор — \(battery.model)", rows: [
-                    MenuRow(label: "Напряжение", value: Format.value(r?.batteryVoltage, "В", digits: 1)),
-                    MenuRow(label: "Режим", value: r.map(modeText) ?? dash),
-                    MenuRow(label: "Номинальная ёмкость", value: Format.value(battery.capacityAh, "А·ч", digits: 0...1)),
-                    MenuRow(label: "Номинальная энергия", value: Format.value(battery.nominalEnergyWh, "Вт·ч", digits: 0...1)),
-                    MenuRow(label: "Установлен", value: "\(Format.date(battery.installedOn)), \(battery.condition)"),
-                    MenuRow(label: "Расчётный заряд", value: notCalibrated),
-                    MenuRow(label: "Оставшееся время (оценка)", value: "не откалибровано"),
-                    MenuRow(label: "Мин. напряжение", value: Format.value(battery.referenceCutoffVoltage, "В", digits: 1) + " — ориентир"),
+                MenuSection(title: "Аккумулятор", rows: [
+                    MenuRow(label: "Напряжение", value: batteryValue(r?.batteryVoltage, "В", digits: 1)),
+                    MenuRow(label: "Режим", value: r.map(modeText) ?? noData),
+                    MenuRow(label: "Заряд", value: batteryValue(r?.batteryCharge, "%", digits: 0...1)),
+                    MenuRow(label: "Оставшееся время (NUT)", value: batteryValue(r?.batteryRuntime, "с", digits: 0)),
                 ]),
                 MenuSection(title: "Отключения сети", rows: [
                     MenuRow(label: "Последнее отключение", value: outageStartText(current: s.currentOutage, last: s.lastOutage)),
@@ -95,12 +91,21 @@ struct MenuModel: Equatable {
             note: s.ratedWatts.map { "Оценка: нагрузка × \(Format.number($0, digits: 0...2)) Вт / 100; не счётчик сети" } ?? "Номинальная мощность не настроена; новые Wh не рассчитываются")
     }
 
+    private static func batteryValue(_ value: Double?, _ unit: String, digits: Int) -> String {
+        batteryValue(value, unit, digits: digits...digits)
+    }
+
+    private static func batteryValue(_ value: Double?, _ unit: String, digits: ClosedRange<Int>) -> String {
+        guard let value else { return noData }
+        return Format.value(value, unit, digits: digits)
+    }
+
     /// v0.1.1 format on mains; battery voltage and OB on battery; a warning dash without fresh data.
     static func barTitle(for r: Reading?, ratedWatts: Double? = nil) -> String {
         guard let r else { return "⚠️ UPS —" }
         let watts = r.estimatedWatts(ratedWatts: ratedWatts).map { String(format: "≈%.0f Вт", $0) } ?? (ratedWatts == nil ? "мощность не настроена" : "— Вт")
         if r.onBattery {
-            let volts = Format.value(r.batteryVoltage, "В", digits: 1)
+            let volts = batteryValue(r.batteryVoltage, "В", digits: 1)
             return "🔋 \(volts) · \(watts) · OB" + (r.lowBattery ? " LB" : "")
         }
         let symbol = r.online ? "⚡" : "⚠️"
@@ -186,11 +191,6 @@ enum Format {
 
     static func time(_ date: Date) -> String { timeFormatter.string(from: date) }
     static func dateTime(_ date: Date) -> String { dateTimeFormatter.string(from: date) }
-
-    /// "01.01.2000"; built from the components so no time zone can shift the day.
-    static func date(_ components: DateComponents) -> String {
-        String(format: "%02d.%02d.%04d", components.day ?? 0, components.month ?? 0, components.year ?? 0)
-    }
 
     static func duration(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds.rounded()))

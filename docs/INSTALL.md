@@ -20,7 +20,8 @@ to your installation, then build. The application requires `ups.status`,
 timeout, followed by termination and, if necessary, a kill of that client child.
 This does not stop the NUT server or driver.
 
-Update the example battery profile in `Battery.swift` for your own hardware.
+No battery profile needs to be configured: voltage, charge and runtime come
+only from NUT. Missing battery values remain unavailable.
 In the settings window, enter the UPS nominal output power in watts, or leave
 it empty when unknown. An empty rating disables new power/energy estimates
 without discarding previously recorded energy. No history is recalculated when

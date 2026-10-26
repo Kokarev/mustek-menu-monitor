@@ -9,6 +9,8 @@ struct Reading {
     let load: Double?
     let batteryVoltage: Double?
     let batteryCharge: Double?
+    /// Remaining runtime in seconds, only as reported by NUT.
+    let batteryRuntime: Double?
     let temperature: Double?
     let frequency: Double?
     let driverState: String
@@ -44,6 +46,7 @@ struct Reading {
         return Reading(timestamp: timestamp, status: status, input: input,
                        output: number("output.voltage"), load: load,
                        batteryVoltage: number("battery.voltage"), batteryCharge: number("battery.charge"),
+                       batteryRuntime: number("battery.runtime"),
                        temperature: number("ups.temperature"), frequency: number("input.frequency"),
                        driverState: data["driver.state"] ?? "—")
     }

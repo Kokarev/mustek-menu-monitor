@@ -1,26 +1,5 @@
 import Foundation
 
-/// Demonstration battery profile; replace with your own specifications before use. Informational only; no runtime or charge is derived yet.
-struct BatteryProfile {
-    let model: String
-    let chemistry: String
-    let nominalVoltage: Double
-    let capacityAh: Double
-    /// Reference end-of-discharge voltage, not a measured or manufacturer-confirmed cut-off.
-    let referenceCutoffVoltage: Double
-    /// Calendar date the battery was put into service (local time).
-    let installedOn: DateComponents
-    /// Condition at installation, as stated by the owner.
-    let condition: String
-
-    var nominalEnergyWh: Double { nominalVoltage * capacityAh }
-
-    static let installed = BatteryProfile(model: "Demo GEL 12V 9Ah", chemistry: "GEL",
-                                          nominalVoltage: 12, capacityAh: 9, referenceCutoffVoltage: 10.5,
-                                          installedOn: DateComponents(year: 2000, month: 1, day: 1),
-                                          condition: "пример")
-}
-
 /// One period on battery power, from the first OB reading to the first OL reading after it.
 struct Outage: Equatable {
     let start: Date

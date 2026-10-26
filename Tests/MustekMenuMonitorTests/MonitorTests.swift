@@ -153,7 +153,7 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
         let model = MenuModel.make(monitor.snapshot())
         XCTAssertTrue(model.header.contains("Нет ответа NUT"))
         XCTAssertEqual(value(model, "NUT"), "нет ответа (upsd недоступен)")
-        XCTAssertEqual(value(model, "Напряжение"), "—")
+        XCTAssertEqual(value(model, "Напряжение"), "Нет данных")
         XCTAssertEqual(value(model, "Мощность"), "—")
     }
 
@@ -253,18 +253,14 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
         XCTAssertEqual(value(model, "Мощность"), "≈20 Вт")
         XCTAssertEqual(value(model, "Напряжение"), "13,5 В")
         XCTAssertEqual(value(model, "Режим"), "От сети")
-        XCTAssertEqual(value(model, "Номинальная ёмкость"), "9 А·ч")
-        XCTAssertEqual(value(model, "Номинальная энергия"), "108 Вт·ч")
-        XCTAssertEqual(value(model, "Установлен"), "01.01.2000, пример")
-        XCTAssertEqual(value(model, "Расчётный заряд"), "не откалиброван")
-        XCTAssertEqual(value(model, "Оставшееся время (оценка)"), "не откалибровано")
-        XCTAssertEqual(value(model, "Мин. напряжение"), "10,5 В — ориентир")
+        XCTAssertEqual(value(model, "Заряд"), "Нет данных")
+        XCTAssertEqual(value(model, "Оставшееся время (NUT)"), "Нет данных")
         XCTAssertEqual(value(model, "Последнее отключение"), "не зафиксировано")
         XCTAssertEqual(value(model, "ИБП"), "25 °C")
         XCTAssertEqual(value(model, "Сегодня"), "≈0,000 кВт·ч")
         XCTAssertEqual(value(model, "NUT"), "подключён")
         XCTAssertEqual(value(model, "Драйвер"), "quiet")
-        XCTAssertEqual(model.sections.first { $0.title.hasPrefix("Аккумулятор") }?.title, "Аккумулятор — Demo GEL 12V 9Ah")
+        XCTAssertEqual(model.sections.first { $0.title.hasPrefix("Аккумулятор") }?.title, "Аккумулятор")
     }
 
     func testMenuLayoutIsTheSameInEveryState() {
