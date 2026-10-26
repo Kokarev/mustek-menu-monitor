@@ -3,17 +3,21 @@ import AppKit
 /// Owns the status item and wires monitor updates to the menu.
 @MainActor final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let monitor: Monitor
+    private let store: SettingsStore
     private var statusItem: NSStatusItem?
     private var content: MenuContent?
+    private var settingsWindow: SettingsWindowController?
 
-    init(settings: Settings) {
-        monitor = Monitor(settings: settings)
+    init(store: SettingsStore) {
+        self.store = store
+        monitor = Monitor(settings: store.load().settings)
         super.init()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        let content = MenuContent(openHistory: { [weak self] in self?.monitor.openHistory() })
+        let content = MenuContent(openHistory: { [weak self] in self?.monitor.openHistory() },
+                                  openSettings: { [weak self] in self?.openSettings() })
         content.menu.delegate = self
         statusItem.menu = content.menu
         self.statusItem = statusItem
@@ -21,6 +25,18 @@ import AppKit
         monitor.onChange = { [weak self] in self?.refresh() }
         refresh()
         monitor.start()
+        // First launch: nothing to monitor until a UPS is chosen.
+        if monitor.settings.upsName == nil { openSettings() }
+    }
+
+    private func openSettings() {
+        if settingsWindow == nil {
+            let controller = SettingsController(current: monitor.settings, store: store) { [weak self] settings in
+                self?.monitor.apply(settings)
+            }
+            settingsWindow = SettingsWindowController(controller: controller)
+        }
+        settingsWindow?.show()
     }
 
     func menuWillOpen(_ menu: NSMenu) {
@@ -31,8 +47,10 @@ import AppKit
 
     private func refresh() {
         let model = MenuModel.make(monitor.snapshot())
-        statusItem?.button?.title = model.statusBarTitle
-        content?.update(model)
+        let prefix = AppIdentity.titlePrefix
+        statusItem?.button?.title = prefix + model.statusBarTitle
+        content?.update(MenuModel(statusBarTitle: prefix + model.statusBarTitle, header: prefix + model.header,
+                                  sections: model.sections, note: model.note))
     }
 }
 
@@ -51,9 +69,9 @@ import AppKit
             exit(1)
         }
         let app = NSApplication.shared
-        // Read only; nothing is written until a settings window exists. Without a stored
-        // UPS name the app starts not configured and never runs upsc.
-        let delegate = AppDelegate(settings: SettingsStore(defaults: UserDefaults.standard).load().settings)
+        // Settings are written only by a successful save in the settings window. Without a
+        // stored UPS name the app starts not configured and never runs upsc.
+        let delegate = AppDelegate(store: SettingsStore(defaults: AppIdentity.settingsDefaults()))
         app.delegate = delegate
         app.setActivationPolicy(.accessory)
         withExtendedLifetime((delegate, lock)) { app.run() }

@@ -85,9 +85,11 @@ final class MenuTextView: NSView {
     private let note = MenuTextView(style: .note)
     private var layout: [[Int]] = []
     private let openHistory: () -> Void
+    private let openSettings: () -> Void
 
-    init(openHistory: @escaping () -> Void) {
+    init(openHistory: @escaping () -> Void, openSettings: @escaping () -> Void) {
         self.openHistory = openHistory
+        self.openSettings = openSettings
         super.init()
         menu.autoenablesItems = false
     }
@@ -117,6 +119,9 @@ final class MenuTextView: NSView {
             sectionViews.append((title, rows))
         }
         menu.addItem(.separator())
+        let settings = NSMenuItem(title: "Настройки…", action: #selector(openSettingsAction), keyEquivalent: ",")
+        settings.target = self
+        menu.addItem(settings)
         let open = NSMenuItem(title: "Открыть журнал CSV", action: #selector(openHistoryAction), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
@@ -131,4 +136,5 @@ final class MenuTextView: NSView {
     }
 
     @objc private func openHistoryAction() { openHistory() }
+    @objc private func openSettingsAction() { openSettings() }
 }

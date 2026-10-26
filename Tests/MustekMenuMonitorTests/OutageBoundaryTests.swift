@@ -117,6 +117,16 @@ import XCTest
         XCTAssertFalse(FileManager.default.fileExists(atPath: ownerFile))
     }
 
+    func testRestoredOutageTakesHistoryVoltagesOnlyFromItsOwnUps() {
+        let first = monitor(upsA)
+        onBattery(first, at: 0, battery: 12.8)
+        onBattery(first, at: 5, battery: 12.0)
+        XCTAssertEqual(monitor(upsA).currentOutage?.minVoltage, 12.0, "same UPS: history samples are restored")
+        let other = monitor(upsB)
+        XCTAssertEqual(other.currentOutage?.minVoltage, 12.8, "other UPS: only what power_events.csv recorded")
+        XCTAssertEqual(other.currentOutage?.lastVoltage, 12.8)
+    }
+
     func testRestartAfterCfgDoesNotReopen() {
         let m = monitor(upsA)
         onBattery(m, at: 0)

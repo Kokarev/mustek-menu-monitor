@@ -26,7 +26,7 @@ import XCTest
     }
 
     func testMenuUsesCustomViewsForTelemetry() throws {
-        let content = MenuContent(openHistory: {})
+        let content = MenuContent(openHistory: {}, openSettings: {})
         content.update(MenuModel.make(try freshSnapshot()))
         let informational = content.menu.items.filter { !$0.isSeparatorItem && $0.action == nil }
         XCTAssertFalse(informational.isEmpty)
@@ -36,7 +36,7 @@ import XCTest
             XCTAssertNil(view.layer?.backgroundColor, "no fixed background colour")
         }
         let titles = content.menu.items.filter { $0.action != nil }.map(\.title)
-        XCTAssertEqual(titles, ["Открыть журнал CSV", "Выход"])
+        XCTAssertEqual(titles, ["Настройки…", "Открыть журнал CSV", "Выход"])
     }
 
     func testRenderMenuInLightAndDark() throws {
@@ -94,7 +94,7 @@ import XCTest
         let output = URL(fileURLWithPath: outputPath, isDirectory: true)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         for (name, appearanceName) in appearances {
-            let content = MenuContent(openHistory: {})
+            let content = MenuContent(openHistory: {}, openSettings: {})
             content.update(model)
             let backdrop = Backdrop()
             backdrop.appearance = NSAppearance(named: appearanceName)

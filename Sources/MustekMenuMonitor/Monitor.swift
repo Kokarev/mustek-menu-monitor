@@ -92,7 +92,8 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     /// Data directory for history, events and the instance lock.
     nonisolated static var defaultDirectory: URL {
         FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/MustekMenuMonitor", isDirectory: true)
+            .appendingPathComponent("Library/Application Support", isDirectory: true)
+            .appendingPathComponent(AppIdentity.dataDirectoryName, isDirectory: true)
     }
 
     /// Default settings have no UPS name, so a monitor built without them stays not configured.
@@ -288,6 +289,7 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         let calendar = Calendar.current
         let now = Date()
         var today = 0.0, month = 0.0, count = 0
+        let ownsRestoredOutage = currentOutage != nil && outageOwner == connection?.target
         for line in text.split(separator: "\n").dropFirst() {
             let parts = line.split(separator: ",", omittingEmptySubsequences: false)
             guard parts.count >= 7, let date = iso.date(from: String(parts[0])),
@@ -295,8 +297,11 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
             if calendar.isDate(date, inSameDayAs: now) { today += wh }
             if calendar.isDate(date, equalTo: now, toGranularity: .month) { month += wh }
             count += 1
-            // An outage still open after a restart regains its OB voltage samples from history.
-            if let start = currentOutage?.start, date > start, parts[1].split(separator: " ").contains("OB"),
+            // An outage still open after a restart regains its OB voltage samples from history,
+            // but only when it belongs to this connection: history rows carry no UPS identity, and
+            // an outage owned by another (or unknown) UPS is ended with CFG on the first reading.
+            if ownsRestoredOutage, let start = currentOutage?.start, date > start,
+               parts[1].split(separator: " ").contains("OB"),
                parts.count >= 8 {
                 currentOutage?.record(voltage: Double(parts[7]), at: date)
             }
