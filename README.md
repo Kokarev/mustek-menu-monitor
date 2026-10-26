@@ -22,7 +22,7 @@ GitHub Release remain on hold pending separate owner approval.**
 - OL/OB/LB status, input/output voltage, frequency, load, temperature and link
   diagnostics. Polling runs every five seconds; stale data is hidden.
 - Battery voltage, charge and runtime in seconds when supplied by NUT.
-  Missing battery values display **«Нет данных»**, not invented values or zero.
+  Missing battery values display **No data**, not invented values or zero.
 - Approximate power and daily/monthly energy based on configured nominal power.
 - Append-only measurement CSV and outage event history; switching UPS closes
   observation of the previous UPS with a configuration-change event.
@@ -55,8 +55,8 @@ See [INSTALL.md](docs/INSTALL.md) for installation from an approved ZIP, first
 launch, login startup, updates and rollback. No v0.1.4 ZIP is published by this
 preparation step. NUT is not bundled and must be managed independently.
 
-In **«Настройки…»**, enter the server, port and UPS name; discover names with
-**«Найти»** if needed. Use **«Проверить»** to check and **«Сохранить»** to persist
+In **Settings…**, enter the server, port and UPS name; discover names with
+**Find** if needed. Use **Check** to check and **Save** to persist
 and apply a working configuration. No source edits or environment variables
 are needed. Saved settings do not change the NUT server configuration.
 

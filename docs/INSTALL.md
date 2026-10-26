@@ -39,11 +39,13 @@ This project does not include an automatic security-policy bypass.
 
 Open the copied production app in Finder. It appears in the menu bar with no
 Dock icon. If no UPS name is saved, Settings opens automatically. Otherwise,
-open **«Настройки…»** from the status menu.
+open **Settings…** from the status menu. Interface names below are the English
+ones; the app shows them in your macOS language (English, Ukrainian, German or
+Russian).
 
 1. Enter the NUT server and port; initial defaults are `127.0.0.1` and `3493`.
    A new installation has no assumed UPS name.
-2. Enter the UPS name, or use **«Найти»** to list UPS names on the selected server.
+2. Enter the UPS name, or use **Find** to list UPS names on the selected server.
    For example, if your server actually exposes a UPS named `mustek`, select it
    to form `mustek@127.0.0.1:3493`. This is an example, not a hardcoded target.
 3. Normally leave manual `upsc` selection off. The app checks standard Homebrew
@@ -51,17 +53,17 @@ open **«Настройки…»** from the status menu.
    `/opt/homebrew/opt/nut/bin/upsc`. It does not search shell PATH. If needed,
    enable manual selection and choose an executable file; an invalid explicit
    path produces an error rather than silently switching to another program.
-4. Enter **«Номинальная мощность, Вт»** if known (1–100000 W, decimal point or
+4. Enter **Nominal power, W** if known (1–100000 W, decimal point or
    comma accepted), or leave it empty. Use the UPS output rating, not battery
    capacity or a guessed value. An empty field disables new power/Wh estimates.
-5. Click **«Проверить»**. It queries the selected UPS without saving. Then click
-   **«Сохранить»**, which checks again before saving and applying the settings.
+5. Click **Check**. It queries the selected UPS without saving. Then click
+   **Save**, which checks again before saving and applying the settings.
    A failed check/save leaves the previously active configuration in effect.
 6. Confirm the active target, status and values in the settings window, then
    close that window and inspect the menu. Settings persist across launches.
 
 No battery profile needs to be configured. The menu uses NUT battery voltage,
-charge and runtime in seconds. If absent, it shows **«Нет данных»**; it does not
+charge and runtime in seconds. If absent, it shows **No data**; it does not
 invent capacity, installation date, age, service life or replacement dates.
 A real zero remains zero. Battery accuracy depends on NUT and the driver.
 Power and energy are approximate calculations from load percentage and the

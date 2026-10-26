@@ -1,7 +1,7 @@
 # Release notes — v0.1.4
 
 Status: local candidate; publication, release tagging and ZIP distribution are
-on strict hold pending separate approval. No binary release is created by M7.
+on strict hold pending separate approval. Final local candidate prepared in M10.
 
 ## Changes from v0.1.3
 
@@ -9,7 +9,11 @@ on strict hold pending separate approval. No binary release is created by M7.
   Russian. macOS chooses the UI language, including per-app preferences.
   Display formatting follows the system locale; NUT identifiers, CSV formats,
   measurement history and calculations are unchanged. Four-language GUI
-  acceptance is reserved for M10.
+  acceptance (en, uk, de, ru, macOS system language, English fallback) was
+  completed by the owner in M10.
+- M10 fixes: the output-voltage row was labelled with the Quit text in
+  English, Ukrainian and German (now Output); Ukrainian and Russian wording
+  corrected in several settings and error messages.
 
 - Native settings window: server/port, UPS name discovery, connection check,
   save/apply, optional `upsc` path and nominal UPS output power. Initial startup
@@ -24,7 +28,7 @@ on strict hold pending separate approval. No binary release is created by M7.
   Genuine zero load is retained. Changing the rating breaks the integration
   chain and never recalculates recorded history.
 - Battery display uses NUT-reported voltage, charge and runtime. A missing value
-  shows «Нет данных». No static battery model, capacity, installation date,
+  shows No data. No static battery model, capacity, installation date,
   battery-life estimate or replacement date is assumed.
 - Compile-time QA identity: separate bundle ID, data directory, settings suite
   and instance lock, plus visible QA labels. Production does not depend on QA
