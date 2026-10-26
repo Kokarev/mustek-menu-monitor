@@ -115,17 +115,17 @@ final class MenuTextView: NSView {
             menu.addItem(item(title))
             let rows = section.rows.map { _ in MenuTextView(style: .row) }
             rows.forEach { menu.addItem(item($0)) }
-            if section.title == "Статистика" { menu.addItem(item(note)) }
+            if section.title == L10n.tr("Statistics") { menu.addItem(item(note)) }
             sectionViews.append((title, rows))
         }
         menu.addItem(.separator())
-        let settings = NSMenuItem(title: "Настройки…", action: #selector(openSettingsAction), keyEquivalent: ",")
+        let settings = NSMenuItem(title: L10n.tr("Settings…"), action: #selector(openSettingsAction), keyEquivalent: ",")
         settings.target = self
         menu.addItem(settings)
-        let open = NSMenuItem(title: "Открыть журнал CSV", action: #selector(openHistoryAction), keyEquivalent: "")
+        let open = NSMenuItem(title: L10n.tr("Open CSV log"), action: #selector(openHistoryAction), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
-        let quit = NSMenuItem(title: "Выход", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quit = NSMenuItem(title: L10n.tr("Quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quit)
     }
 

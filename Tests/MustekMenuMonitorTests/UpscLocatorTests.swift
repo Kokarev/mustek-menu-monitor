@@ -174,7 +174,7 @@ import XCTest
         let monitor = Monitor(settings: Settings(upsName: "mustek"), historyDirectory: directory,
                               locator: UpscLocator(candidates: [expected]))
         XCTAssertNil(monitor.poll())
-        XCTAssertEqual(monitor.link, .noResponse("upsc не найден"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("upsc not found")))
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.csv").path))
 
         try "\(sampleOL)\n".write(to: tools.appendingPathComponent("sample.txt"), atomically: true, encoding: .utf8)
@@ -197,7 +197,7 @@ import XCTest
 
         try FileManager.default.removeItem(atPath: upsc)
         for _ in 0..<3 { XCTAssertNil(monitor.poll()) }
-        XCTAssertEqual(monitor.link, .noResponse("upsc не найден"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("upsc not found")))
         XCTAssertNotNil(monitor.currentOutage)
         XCTAssertEqual(try Data(contentsOf: directory.appendingPathComponent("history.csv")), history)
         XCTAssertEqual(try Data(contentsOf: directory.appendingPathComponent("power_events.csv")), events)
@@ -208,7 +208,7 @@ import XCTest
         let monitor = Monitor(settings: Settings(upsName: "mustek", upscPath: path("absent")), historyDirectory: directory,
                               locator: UpscLocator(candidates: [standard]))
         XCTAssertNil(monitor.poll())
-        XCTAssertEqual(monitor.link, .noResponse("указанный upsc недоступен"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("selected upsc unavailable")))
         XCTAssertFalse(FileManager.default.fileExists(atPath: path("ran")))
     }
 

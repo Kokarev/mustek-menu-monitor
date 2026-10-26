@@ -136,9 +136,9 @@ final class ControlledRunner: @unchecked Sendable {
         XCTAssertEqual(calls, [])
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.csv").path))
         let model = MenuModel.make(monitor.snapshot())
-        XCTAssertEqual(model.header, "MUSTEK UPS — ⚙️ ИБП не настроен")
-        XCTAssertEqual(model.statusBarTitle, "⚠️ UPS —")
-        XCTAssertEqual(model.sections.flatMap(\.rows).first { $0.label == "NUT" }?.value, "не настроен")
+        XCTAssertEqual(model.header, "MUSTEK \(L10n.tr("UPS")) — ⚙️ \(L10n.tr("UPS not configured"))")
+        XCTAssertEqual(model.statusBarTitle, "⚠️ \(L10n.tr("UPS")) —")
+        XCTAssertEqual(model.sections.flatMap(\.rows).first { $0.label == "NUT" }?.value, L10n.tr("not configured"))
 
         // Configuring later starts monitoring.
         monitor.apply(configured(path: path))
@@ -165,10 +165,10 @@ final class ControlledRunner: @unchecked Sendable {
         let path = try fakeUpsc(mode: "refused")
         let monitor = Monitor(settings: configured(path: path), historyDirectory: directory, locator: locator)
         await monitor.poll()?.value
-        XCTAssertEqual(monitor.link, .noResponse("upsd недоступен"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("upsd unavailable")))
         setMode("unknown")
         await monitor.poll()?.value
-        XCTAssertEqual(monitor.link, .noResponse("ИБП не найден в upsd"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("UPS not found in upsd")))
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.csv").path))
     }
 
@@ -176,14 +176,14 @@ final class ControlledRunner: @unchecked Sendable {
         let path = try fakeUpsc(mode: "refused")
         let monitor = Monitor(settings: configured(path: path), historyDirectory: directory, locator: locator)
         await monitor.poll()?.value
-        XCTAssertEqual(monitor.link, .noResponse("upsd недоступен"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("upsd unavailable")))
         setMode("ok")
         await monitor.poll()?.value
         XCTAssertEqual(monitor.link, .ok)
 
         setMode("unknown")
         await monitor.poll()?.value
-        XCTAssertEqual(monitor.link, .noResponse("ИБП не найден в upsd"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("UPS not found in upsd")))
         setMode("ok")
         monitor.apply(configured("other", path: path))
         await monitor.poll()?.value
@@ -195,7 +195,7 @@ final class ControlledRunner: @unchecked Sendable {
         let monitor = Monitor(settings: configured(path: tools.appendingPathComponent("absent").path),
                               historyDirectory: directory, locator: locator)
         XCTAssertNil(monitor.poll())
-        XCTAssertEqual(monitor.link, .noResponse("указанный upsc недоступен"))
+        XCTAssertEqual(monitor.link, .noResponse(L10n.tr("selected upsc unavailable")))
     }
 
     func testHungUpscIsStillTerminated() async throws {

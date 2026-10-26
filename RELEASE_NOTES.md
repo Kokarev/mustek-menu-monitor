@@ -5,6 +5,12 @@ on strict hold pending separate approval. No binary release is created by M7.
 
 ## Changes from v0.1.3
 
+- Native bundle localizations: English (base/fallback), Ukrainian, German and
+  Russian. macOS chooses the UI language, including per-app preferences.
+  Display formatting follows the system locale; NUT identifiers, CSV formats,
+  measurement history and calculations are unchanged. Four-language GUI
+  acceptance is reserved for M10.
+
 - Native settings window: server/port, UPS name discovery, connection check,
   save/apply, optional `upsc` path and nominal UPS output power. Initial startup
   remains unconfigured until a UPS is selected; settings persist in UserDefaults.

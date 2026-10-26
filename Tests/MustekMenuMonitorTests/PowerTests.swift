@@ -55,9 +55,9 @@ import XCTest
         XCTAssertEqual(m.todayWh, 0)
         XCTAssertEqual(m.monthWh, 0)
         let model = MenuModel.make(m.snapshot())
-        XCTAssertEqual(value(model, "Мощность"), "не настроена")
-        XCTAssertEqual(value(model, "Сегодня"), "не настроено")
-        XCTAssertTrue(model.statusBarTitle.contains("мощность не настроена"))
+        XCTAssertEqual(value(model, L10n.tr("Power")), L10n.tr("Power not configured"))
+        XCTAssertEqual(value(model, L10n.tr("Today")), L10n.tr("Not configured"))
+        XCTAssertTrue(model.statusBarTitle.contains(L10n.tr("power not configured")))
         XCTAssertFalse(model.note.contains("400"))
         XCTAssertEqual(monitor(nil).sampleCount, 2, "unknown Wh must not hide telemetry on reload")
     }
@@ -72,7 +72,7 @@ import XCTest
         XCTAssertEqual(csv[2][5], "0.0")
         XCTAssertEqual(csv[2][6], "0.0")
         m.apply(Settings(upsName: "example-ups"))
-        XCTAssertEqual(value(MenuModel.make(m.snapshot()), "Сегодня"), "≈0,000 кВт·ч")
+        XCTAssertEqual(value(MenuModel.make(m.snapshot()), L10n.tr("Today")), Format.value(0, L10n.tr("kWh"), digits: 3, approx: true))
     }
 
     func testRatingChangeBreaksIntegrationAndRefreshesMenuWithoutRewritingHistory() throws {
@@ -89,7 +89,7 @@ import XCTest
         m.apply(Settings(upsName: "example-ups", ratedWatts: 600))
         XCTAssertEqual(m.generation, generation)
         XCTAssertEqual(notifications, 1)
-        XCTAssertEqual(value(MenuModel.make(m.snapshot()), "Мощность"), "≈150 Вт")
+        XCTAssertEqual(value(MenuModel.make(m.snapshot()), L10n.tr("Power")), Format.value(150, L10n.tr("W"), digits: 0, approx: true))
         XCTAssertEqual(try Data(contentsOf: path), oldHistory)
         m.handle(.output(sample(load: 50)), at: t0.addingTimeInterval(10))
         XCTAssertEqual(try rows()[3][6], "")
@@ -130,9 +130,9 @@ import XCTest
         m.handle(.output(sample(load: 25)), at: t0.addingTimeInterval(5))
         m.handle(.output(sample(load: 25)), at: t0.addingTimeInterval(10))
         let model = MenuModel.make(m.snapshot())
-        XCTAssertEqual(value(model, "Мощность"), "не настроена")
-        XCTAssertEqual(value(model, "Сегодня"), "≈1,250 кВт·ч")
-        XCTAssertEqual(value(model, "Этот месяц"), "≈1,250 кВт·ч")
+        XCTAssertEqual(value(model, L10n.tr("Power")), L10n.tr("Power not configured"))
+        XCTAssertEqual(value(model, L10n.tr("Today")), Format.value(1.25, L10n.tr("kWh"), digits: 3, approx: true))
+        XCTAssertEqual(value(model, L10n.tr("This month")), Format.value(1.25, L10n.tr("kWh"), digits: 3, approx: true))
         XCTAssertTrue(try String(contentsOf: path).hasPrefix(old))
         let reloaded = monitor(nil)
         XCTAssertEqual(reloaded.todayWh, 1250)

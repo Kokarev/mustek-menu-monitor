@@ -2,7 +2,11 @@
 
 A lightweight native macOS menu bar UPS monitor powered by Network UPS Tools
 (NUT). It reads an existing NUT server through the separately installed `upsc`
-client. The interface is currently in Russian.
+client. The interface supports English, Ukrainian, German and Russian using
+macOS language preferences, including the app-specific language set in System
+Settings. English is the base and fallback language when no supported language
+is preferred. There is no in-app language selector. Displayed numbers and
+dates use the system locale; NUT codes and CSV serialization stay unchanged.
 
 **v0.1.4 is a local release candidate. Publication, ZIP distribution and a
 GitHub Release remain on hold pending separate owner approval.**

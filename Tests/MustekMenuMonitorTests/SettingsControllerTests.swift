@@ -86,7 +86,7 @@ final class FakeExecutor: @unchecked Sendable {
         fake.answers["-l 127.0.0.1:3493"] = .failed(1, "Error: Connection failure: Connection refused")
         let c = controller()
         let refused = await c.discover(try draft(c))
-        XCTAssertEqual(refused, .failure(.connection("upsd недоступен")))
+        XCTAssertEqual(refused, .failure(.connection(L10n.tr("upsd unavailable"))))
         let badHost = await c.discover(try draft(c, host: "-x"))
         XCTAssertEqual(badHost, .failure(.invalid([.hostLeadingHyphen])))
         let noUpsc = await controller(candidates: []).discover(try draft(c))
@@ -110,7 +110,7 @@ final class FakeExecutor: @unchecked Sendable {
     func testFailedChecks() async throws {
         let c = controller()
         let unknown = await c.check(try draft(c))
-        XCTAssertEqual(unknown, .failure(.connection("ИБП не найден в upsd")))
+        XCTAssertEqual(unknown, .failure(.connection(L10n.tr("UPS not found in upsd"))))
         let noName = await c.check(try draft(c, name: ""))
         XCTAssertEqual(noName, .failure(.noUpsName))
         fake.answers["mustek@127.0.0.1:3493"] = .output("ups.status: OL\n")
@@ -118,7 +118,7 @@ final class FakeExecutor: @unchecked Sendable {
         XCTAssertEqual(partial, .failure(.invalidResponse))
         fake.answers["mustek@127.0.0.1:3493"] = .timedOut
         let slow = await c.check(try draft(c))
-        XCTAssertEqual(slow, .failure(.connection("тайм-аут")))
+        XCTAssertEqual(slow, .failure(.connection(L10n.tr("timeout"))))
         let badPath = await c.check(try draft(c, path: root.appendingPathComponent("absent").path))
         XCTAssertEqual(badPath, .failure(.invalid([.upscPathNotFound])))
     }
@@ -152,7 +152,7 @@ final class FakeExecutor: @unchecked Sendable {
 
         let broken = try draft(c, name: "other")
         let result = await c.save(broken)
-        XCTAssertEqual(result, .failure(.connection("ИБП не найден в upsd")))
+        XCTAssertEqual(result, .failure(.connection(L10n.tr("UPS not found in upsd"))))
         XCTAssertEqual(c.current, working)
         XCTAssertEqual(applied, [working])
         XCTAssertEqual(SettingsStore(defaults: backend).load().settings, working)

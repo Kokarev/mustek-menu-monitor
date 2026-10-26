@@ -42,7 +42,7 @@ struct MenuModel: Equatable {
     let note: String
 
     static let unavailable = "—"
-    static let noData = "Нет данных"
+    static let noData = L10n.tr("No data")
 
     static func make(_ s: MonitorSnapshot) -> MenuModel {
         // Values are shown only while the link is healthy; otherwise every reading shows a dash.
@@ -51,44 +51,44 @@ struct MenuModel: Equatable {
         let outage = s.currentOutage ?? s.lastOutage
         return MenuModel(
             statusBarTitle: barTitle(for: r, ratedWatts: s.ratedWatts),
-            header: "MUSTEK UPS — \(stateText(link: s.link, reading: r))",
+            header: "MUSTEK \(L10n.tr("UPS")) — \(stateText(link: s.link, reading: r))",
             sections: [
-                MenuSection(title: "Электросеть", rows: [
-                    MenuRow(label: "Вход", value: Format.value(r?.input, "В", digits: 1)),
-                    MenuRow(label: "Выход", value: Format.value(r?.output, "В", digits: 1)),
-                    MenuRow(label: "Частота", value: Format.value(r?.frequency, "Гц", digits: 1)),
+                MenuSection(title: L10n.tr("Mains"), rows: [
+                    MenuRow(label: L10n.tr("Input"), value: Format.value(r?.input, L10n.tr("V"), digits: 1)),
+                    MenuRow(label: L10n.tr("Quit"), value: Format.value(r?.output, L10n.tr("V"), digits: 1)),
+                    MenuRow(label: L10n.tr("Frequency"), value: Format.value(r?.frequency, L10n.tr("Hz"), digits: 1)),
                 ]),
-                MenuSection(title: "Нагрузка", rows: [
-                    MenuRow(label: "Нагрузка", value: Format.value(r?.load, "%", digits: 0...1, space: false)),
-                    MenuRow(label: "Мощность", value: s.ratedWatts == nil ? "не настроена" : Format.value(r?.estimatedWatts(ratedWatts: s.ratedWatts), "Вт", digits: 0, approx: true)),
+                MenuSection(title: L10n.tr("Load"), rows: [
+                    MenuRow(label: L10n.tr("Load"), value: Format.value(r?.load, "%", digits: 0...1, space: false)),
+                    MenuRow(label: L10n.tr("Power"), value: s.ratedWatts == nil ? L10n.tr("Power not configured") : Format.value(r?.estimatedWatts(ratedWatts: s.ratedWatts), L10n.tr("W"), digits: 0, approx: true)),
                 ]),
-                MenuSection(title: "Аккумулятор", rows: [
-                    MenuRow(label: "Напряжение", value: batteryValue(r?.batteryVoltage, "В", digits: 1)),
-                    MenuRow(label: "Режим", value: r.map(modeText) ?? noData),
-                    MenuRow(label: "Заряд", value: batteryValue(r?.batteryCharge, "%", digits: 0...1)),
-                    MenuRow(label: "Оставшееся время (NUT)", value: batteryValue(r?.batteryRuntime, "с", digits: 0)),
+                MenuSection(title: L10n.tr("Battery"), rows: [
+                    MenuRow(label: L10n.tr("Voltage"), value: batteryValue(r?.batteryVoltage, L10n.tr("V"), digits: 1)),
+                    MenuRow(label: L10n.tr("Mode"), value: r.map(modeText) ?? noData),
+                    MenuRow(label: L10n.tr("Charge"), value: batteryValue(r?.batteryCharge, "%", digits: 0...1)),
+                    MenuRow(label: L10n.tr("Remaining runtime (NUT)"), value: batteryValue(r?.batteryRuntime, L10n.tr("s"), digits: 0)),
                 ]),
-                MenuSection(title: "Отключения сети", rows: [
-                    MenuRow(label: "Последнее отключение", value: outageStartText(current: s.currentOutage, last: s.lastOutage)),
-                    MenuRow(label: "Продолжительность", value: outage.map { outageDuration($0, now: s.now) } ?? dash),
-                    MenuRow(label: "Мин. напряжение АКБ", value: Format.value(outage?.minVoltage, "В", digits: 1)),
-                    MenuRow(label: "Падение напряжения", value: Format.value(outage?.dropRatePerHour, "В/ч", digits: 2)),
+                MenuSection(title: L10n.tr("Power outages"), rows: [
+                    MenuRow(label: L10n.tr("Last outage"), value: outageStartText(current: s.currentOutage, last: s.lastOutage)),
+                    MenuRow(label: L10n.tr("Duration"), value: outage.map { outageDuration($0, now: s.now) } ?? dash),
+                    MenuRow(label: L10n.tr("Minimum battery voltage"), value: Format.value(outage?.minVoltage, L10n.tr("V"), digits: 1)),
+                    MenuRow(label: L10n.tr("Voltage drop"), value: Format.value(outage?.dropRatePerHour, L10n.tr("V/h"), digits: 2)),
                 ]),
-                MenuSection(title: "Температура", rows: [
-                    MenuRow(label: "ИБП", value: Format.value(r?.temperature, "°C", digits: 0...1)),
+                MenuSection(title: L10n.tr("Temperature"), rows: [
+                    MenuRow(label: L10n.tr("UPS"), value: Format.value(r?.temperature, "°C", digits: 0...1)),
                 ]),
-                MenuSection(title: "Статистика", rows: [
-                    MenuRow(label: "Сегодня", value: s.ratedWatts == nil && !s.hasTodayEnergy ? "не настроено" : Format.value(s.todayWh / 1000, "кВт·ч", digits: 3, approx: true)),
-                    MenuRow(label: "Этот месяц", value: s.ratedWatts == nil && !s.hasMonthEnergy ? "не настроено" : Format.value(s.monthWh / 1000, "кВт·ч", digits: 3, approx: true)),
+                MenuSection(title: L10n.tr("Statistics"), rows: [
+                    MenuRow(label: L10n.tr("Today"), value: s.ratedWatts == nil && !s.hasTodayEnergy ? L10n.tr("Not configured") : Format.value(s.todayWh / 1000, L10n.tr("kWh"), digits: 3, approx: true)),
+                    MenuRow(label: L10n.tr("This month"), value: s.ratedWatts == nil && !s.hasMonthEnergy ? L10n.tr("Not configured") : Format.value(s.monthWh / 1000, L10n.tr("kWh"), digits: 3, approx: true)),
                 ]),
-                MenuSection(title: "Диагностика", rows: [
+                MenuSection(title: L10n.tr("Diagnostics"), rows: [
                     MenuRow(label: "NUT", value: linkText(s.link)),
-                    MenuRow(label: "Статус ИБП", value: r?.status ?? dash),
-                    MenuRow(label: "Драйвер", value: r?.driverState ?? dash),
-                    MenuRow(label: "Последнее обновление", value: s.lastSuccess.map(Format.time) ?? dash),
+                    MenuRow(label: L10n.tr("UPS status"), value: r?.status ?? dash),
+                    MenuRow(label: L10n.tr("Driver"), value: r?.driverState ?? dash),
+                    MenuRow(label: L10n.tr("Last update"), value: s.lastSuccess.map { Format.time($0) } ?? dash),
                 ]),
             ],
-            note: s.ratedWatts.map { "Оценка: нагрузка × \(Format.number($0, digits: 0...2)) Вт / 100; не счётчик сети" } ?? "Номинальная мощность не настроена; новые Wh не рассчитываются")
+            note: s.ratedWatts.map { L10n.format("Estimate: load × %@ W / 100; not a mains meter", Format.number($0, digits: 0...2)) } ?? L10n.tr("Nominal power not configured; new Wh are not calculated"))
     }
 
     private static func batteryValue(_ value: Double?, _ unit: String, digits: Int) -> String {
@@ -102,81 +102,80 @@ struct MenuModel: Equatable {
 
     /// v0.1.1 format on mains; battery voltage and OB on battery; a warning dash without fresh data.
     static func barTitle(for r: Reading?, ratedWatts: Double? = nil) -> String {
-        guard let r else { return "⚠️ UPS —" }
-        let watts = r.estimatedWatts(ratedWatts: ratedWatts).map { String(format: "≈%.0f Вт", $0) } ?? (ratedWatts == nil ? "мощность не настроена" : "— Вт")
+        guard let r else { return "⚠️ \(L10n.tr("UPS")) —" }
+        let watts = r.estimatedWatts(ratedWatts: ratedWatts).map { Format.value($0, L10n.tr("W"), digits: 0, approx: true) } ?? (ratedWatts == nil ? L10n.tr("power not configured") : "— " + L10n.tr("W"))
         if r.onBattery {
-            let volts = batteryValue(r.batteryVoltage, "В", digits: 1)
+            let volts = batteryValue(r.batteryVoltage, L10n.tr("V"), digits: 1)
             return "🔋 \(volts) · \(watts) · OB" + (r.lowBattery ? " LB" : "")
         }
         let symbol = r.online ? "⚡" : "⚠️"
-        let volts = r.input.map { String(format: "%.0f В", $0) } ?? "— В"
-        let load = r.load.map { String(format: "%.0f%%", $0) } ?? "—%"
+        let volts = r.input.map { Format.value($0, L10n.tr("V"), digits: 0) } ?? "— " + L10n.tr("V")
+        let load = r.load.map { Format.value($0, "%", digits: 0, space: false) } ?? "—%"
         return "\(symbol) \(volts) · \(watts) · \(load)"
     }
 
     static func stateText(link: LinkState, reading r: Reading?) -> String {
         switch link {
-        case .notConfigured: return "⚙️ ИБП не настроен"
-        case .waiting: return "⏳ Ожидание данных"
-        case .stale: return "🟡 Данные устарели"
-        case .noResponse: return "🔴 Нет ответа NUT"
-        case .invalid: return "🔴 Некорректный ответ NUT"
+        case .notConfigured: return "⚙️ " + L10n.tr("UPS not configured")
+        case .waiting: return "⏳ " + L10n.tr("Waiting for data")
+        case .stale: return "🟡 " + L10n.tr("Data stale")
+        case .noResponse: return "🔴 " + L10n.tr("No NUT response")
+        case .invalid: return "🔴 " + L10n.tr("Invalid NUT response")
         case .ok:
-            guard let r else { return "⏳ Ожидание данных" }
-            if r.onBattery { return r.lowBattery ? "🔴 От аккумулятора, низкий заряд" : "🟠 От аккумулятора" }
-            if r.online { return "🟢 От сети" }
-            return "⚠️ Статус: \(r.status)"
+            guard let r else { return "⏳ " + L10n.tr("Waiting for data") }
+            if r.onBattery { return r.lowBattery ? "🔴 " + L10n.tr("On battery, low battery") : "🟠 " + L10n.tr("On battery") }
+            if r.online { return "🟢 " + L10n.tr("On mains") }
+            return "⚠️ " + L10n.format("Status: %@", r.status)
         }
     }
 
     static func modeText(_ r: Reading) -> String {
-        if r.onBattery { return "Разряд" }
-        if r.online { return "От сети" }
+        if r.onBattery { return L10n.tr("Discharging") }
+        if r.online { return L10n.tr("On mains") }
         return r.status
     }
 
     static func linkText(_ link: LinkState) -> String {
         switch link {
-        case .notConfigured: return "не настроен"
-        case .waiting: return "ожидание"
-        case .ok: return "подключён"
-        case .stale: return "данные устарели"
-        case .noResponse(let reason): return "нет ответа (\(reason))"
-        case .invalid: return "некорректный ответ"
+        case .notConfigured: return L10n.tr("not configured")
+        case .waiting: return L10n.tr("waiting")
+        case .ok: return L10n.tr("connected")
+        case .stale: return L10n.tr("data stale")
+        case .noResponse(let reason): return L10n.format("no response (%@)", reason)
+        case .invalid: return L10n.tr("invalid response")
         }
     }
 
     static func outageStartText(current: Outage?, last: Outage?) -> String {
-        if let current { return "идёт с \(Format.time(current.start))" }
+        if let current { return L10n.format("ongoing since %@", Format.time(current.start)) }
         if let last { return Format.dateTime(last.start) }
-        return "не зафиксировано"
+        return L10n.tr("not recorded")
     }
 
     static func outageDuration(_ outage: Outage, now: Date) -> String {
-        Format.duration(outage.duration(now: now)) + (outage.end == nil ? " (идёт)" : "")
+        Format.duration(outage.duration(now: now)) + (outage.end == nil ? L10n.tr(" (ongoing)") : "")
     }
 }
 
 /// Russian number formatting: decimal comma, no grouping.
 enum Format {
-    private static let locale = Locale(identifier: "ru_RU")
-    private static let timeFormatter = formatter("HH:mm:ss")
-    private static let dateTimeFormatter = formatter("dd.MM.yyyy HH:mm")
-
-    private static func formatter(_ pattern: String) -> DateFormatter {
-        let f = DateFormatter()
-        f.locale = locale
-        f.dateFormat = pattern
-        return f
-    }
-
-    static func number(_ value: Double, digits: ClosedRange<Int>) -> String {
+    static func number(_ value: Double, digits: ClosedRange<Int>, locale: Locale = .current) -> String {
         let f = NumberFormatter()
         f.locale = locale
         f.numberStyle = .decimal
         f.usesGroupingSeparator = false
         f.minimumFractionDigits = digits.lowerBound
         f.maximumFractionDigits = digits.upperBound
+        return f.string(from: NSNumber(value: value)) ?? String(value)
+    }
+
+    static func inputNumber(_ value: Double, locale: Locale = .current) -> String {
+        let f = NumberFormatter()
+        f.locale = locale
+        f.numberStyle = .decimal
+        f.usesGroupingSeparator = false
+        f.usesSignificantDigits = true
+        f.maximumSignificantDigits = 17
         return f.string(from: NSNumber(value: value)) ?? String(value)
     }
 
@@ -189,14 +188,20 @@ enum Format {
         return (approx ? "≈" : "") + number(value, digits: digits) + (space ? " " : "") + unit
     }
 
-    static func time(_ date: Date) -> String { timeFormatter.string(from: date) }
-    static func dateTime(_ date: Date) -> String { dateTimeFormatter.string(from: date) }
+    static func time(_ date: Date, locale: Locale = .current) -> String {
+        let f = DateFormatter(); f.locale = locale; f.timeStyle = .medium; f.dateStyle = .none
+        return f.string(from: date)
+    }
+    static func dateTime(_ date: Date, locale: Locale = .current) -> String {
+        let f = DateFormatter(); f.locale = locale; f.dateStyle = .short; f.timeStyle = .medium
+        return f.string(from: date)
+    }
 
     static func duration(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds.rounded()))
         let h = total / 3600, m = total % 3600 / 60, s = total % 60
-        if h > 0 { return "\(h) ч \(m) мин" }
-        if m > 0 { return "\(m) мин \(s) с" }
-        return "\(s) с"
+        if h > 0 { return "\(number(Double(h), digits: 0...0)) \(L10n.tr("h")) \(number(Double(m), digits: 0...0)) \(L10n.tr("min"))" }
+        if m > 0 { return "\(number(Double(m), digits: 0...0)) \(L10n.tr("min")) \(number(Double(s), digits: 0...0)) \(L10n.tr("s"))" }
+        return "\(number(Double(s), digits: 0...0)) \(L10n.tr("s"))"
     }
 }

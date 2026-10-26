@@ -8,6 +8,9 @@ swift build -c release --arch arm64 -Xswiftc -DMUSTEK_QA --scratch-path .build/q
 APP="$PWD/dist/qa/MustekMenuMonitorQA.app"
 mkdir -p "$APP/Contents/MacOS"
 cp .build/qa/release/MustekMenuMonitor "$APP/Contents/MacOS/MustekMenuMonitor"
+# SwiftPM resource bundle is copied into the installed app before signing.
+mkdir -p "$APP/Contents/Resources"
+ditto .build/qa/release/MustekMenuMonitor_MustekMenuMonitor.bundle "$APP/Contents/Resources/MustekMenuMonitor_MustekMenuMonitor.bundle"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -19,6 +22,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>0.1.4</string>
 <key>CFBundleVersion</key><string>14</string>
+<key>CFBundleDevelopmentRegion</key><string>en</string>
+<key>CFBundleLocalizations</key><array><string>en</string><string>uk</string><string>de</string><string>ru</string></array>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>

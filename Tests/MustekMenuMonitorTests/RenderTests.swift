@@ -36,7 +36,7 @@ import XCTest
             XCTAssertNil(view.layer?.backgroundColor, "no fixed background colour")
         }
         let titles = content.menu.items.filter { $0.action != nil }.map(\.title)
-        XCTAssertEqual(titles, ["Настройки…", "Открыть журнал CSV", "Выход"])
+        XCTAssertEqual(titles, [L10n.tr("Settings…"), L10n.tr("Open CSV log"), L10n.tr("Quit")])
     }
 
     func testRenderMenuInLightAndDark() throws {
@@ -48,7 +48,7 @@ import XCTest
         var outage = Outage(start: now.addingTimeInterval(-754))
         outage.record(voltage: 12.8, at: now.addingTimeInterval(-750))
         outage.record(voltage: 12.4, at: now.addingTimeInterval(-10))
-        let snapshot = MonitorSnapshot(link: .noResponse("upsd недоступен"), reading: nil, lastSuccess: now.addingTimeInterval(-40),
+        let snapshot = MonitorSnapshot(link: .noResponse(L10n.tr("upsd unavailable")), reading: nil, lastSuccess: now.addingTimeInterval(-40),
                                        todayWh: 1, monthWh: 1, currentOutage: outage, lastOutage: nil, now: now)
         try render(MenuModel.make(snapshot), prefix: "noresponse-outage")
     }

@@ -20,10 +20,10 @@ enum LinkState: Equatable {
     static func forFailure(message: String) -> LinkState {
         let text = message.lowercased()
         if text.contains("data stale") { return .stale }
-        if text.contains("driver not connected") { return .noResponse("драйвер не подключён") }
-        if text.contains("unknown ups") { return .noResponse("ИБП не найден в upsd") }
-        if text.contains("connection failure") || text.contains("connection refused") { return .noResponse("upsd недоступен") }
-        return .noResponse("ошибка upsc")
+        if text.contains("driver not connected") { return .noResponse(L10n.tr("driver not connected")) }
+        if text.contains("unknown ups") { return .noResponse(L10n.tr("UPS not found in upsd")) }
+        if text.contains("connection failure") || text.contains("connection refused") { return .noResponse(L10n.tr("upsd unavailable")) }
+        return .noResponse(L10n.tr("upsc error"))
     }
 }
 
@@ -164,9 +164,9 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         let path: String
         switch locator.locate(userPath: connection.userPath) {
         case .success(let found): path = found
-        case .failure(.notFound): fail(.noResponse("upsc не найден")); return nil
+        case .failure(.notFound): fail(.noResponse(L10n.tr("upsc not found"))); return nil
         // The user's choice is never replaced by another upsc behind their back.
-        case .failure(.userPathUnusable): fail(.noResponse("указанный upsc недоступен")); return nil
+        case .failure(.userPathUnusable): fail(.noResponse(L10n.tr("selected upsc unavailable"))); return nil
         }
         isPolling = true
         let started = generation
@@ -191,9 +191,9 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     func handle(_ outcome: UpscOutcome, at now: Date) {
         switch outcome {
         case .launchError:
-            fail(.noResponse("upsc не запускается"))
+            fail(.noResponse(L10n.tr("upsc could not start")))
         case .timedOut:
-            fail(.noResponse("тайм-аут"))
+            fail(.noResponse(L10n.tr("timeout")))
         case .failed(_, let message):
             fail(LinkState.forFailure(message: message))
         case .output(let raw):

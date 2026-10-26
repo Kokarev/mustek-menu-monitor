@@ -71,10 +71,10 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
 
     func testFailureMessagesMapToLinkStates() {
         XCTAssertEqual(LinkState.forFailure(message: "Error: Data stale\n"), .stale)
-        XCTAssertEqual(LinkState.forFailure(message: "Error: Driver not connected"), .noResponse("драйвер не подключён"))
-        XCTAssertEqual(LinkState.forFailure(message: "Error: Connection failure: Connection refused"), .noResponse("upsd недоступен"))
-        XCTAssertEqual(LinkState.forFailure(message: "Error: Unknown UPS"), .noResponse("ИБП не найден в upsd"))
-        XCTAssertEqual(LinkState.forFailure(message: "something else"), .noResponse("ошибка upsc"))
+        XCTAssertEqual(LinkState.forFailure(message: "Error: Driver not connected"), .noResponse(L10n.tr("driver not connected")))
+        XCTAssertEqual(LinkState.forFailure(message: "Error: Connection failure: Connection refused"), .noResponse(L10n.tr("upsd unavailable")))
+        XCTAssertEqual(LinkState.forFailure(message: "Error: Unknown UPS"), .noResponse(L10n.tr("UPS not found in upsd")))
+        XCTAssertEqual(LinkState.forFailure(message: "something else"), .noResponse(L10n.tr("upsc error")))
     }
 
     // MARK: History (UI-06)
@@ -140,10 +140,10 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
         XCTAssertNil(monitor.freshReading)
         XCTAssertEqual(lines("history.csv").count, 2)
         let model = MenuModel.make(monitor.snapshot(now: t0.addingTimeInterval(5)))
-        XCTAssertTrue(model.header.contains("Некорректный ответ NUT"))
-        XCTAssertEqual(value(model, "Вход"), "—")
-        XCTAssertEqual(value(model, "Последнее обновление"), Format.time(t0))
-        XCTAssertEqual(model.statusBarTitle, "⚠️ UPS —")
+        XCTAssertTrue(model.header.contains(L10n.tr("Invalid NUT response")))
+        XCTAssertEqual(value(model, L10n.tr("Input")), "—")
+        XCTAssertEqual(value(model, L10n.tr("Last update")), Format.time(t0))
+        XCTAssertEqual(model.statusBarTitle, "⚠️ \(L10n.tr("UPS")) —")
     }
 
     func testNoResponseHidesValues() {
@@ -151,10 +151,10 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
         monitor.handle(.output(sampleOL), at: Date())
         monitor.handle(.failed(1, "Error: Connection failure: Connection refused"), at: Date())
         let model = MenuModel.make(monitor.snapshot())
-        XCTAssertTrue(model.header.contains("Нет ответа NUT"))
-        XCTAssertEqual(value(model, "NUT"), "нет ответа (upsd недоступен)")
-        XCTAssertEqual(value(model, "Напряжение"), "Нет данных")
-        XCTAssertEqual(value(model, "Мощность"), "—")
+        XCTAssertTrue(model.header.contains(L10n.tr("No NUT response")))
+        XCTAssertEqual(value(model, "NUT"), L10n.format("no response (%@)", L10n.tr("upsd unavailable")))
+        XCTAssertEqual(value(model, L10n.tr("Voltage")), L10n.tr("No data"))
+        XCTAssertEqual(value(model, L10n.tr("Power")), "—")
     }
 
     func testStaleDataByAgeAndByNUT() {
@@ -166,7 +166,7 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
         monitor.checkStaleness(now: t0.addingTimeInterval(Monitor.staleAfter + 1))
         XCTAssertEqual(monitor.link, .stale)
         XCTAssertNil(monitor.freshReading)
-        XCTAssertTrue(MenuModel.make(monitor.snapshot()).header.contains("Данные устарели"))
+        XCTAssertTrue(MenuModel.make(monitor.snapshot()).header.contains(L10n.tr("Data stale")))
 
         monitor.handle(.output(sampleOL), at: t0.addingTimeInterval(20))
         monitor.handle(.failed(1, "Error: Data stale"), at: t0.addingTimeInterval(25))
@@ -233,34 +233,34 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
 
     func testStatusBarTitles() {
         let ol = Reading.parse(sample(load: 6, battery: 13.5).replacingOccurrences(of: "230.0", with: "228.9"), at: Date())
-        XCTAssertEqual(MenuModel.barTitle(for: ol, ratedWatts: 400), "⚡ 229 В · ≈24 Вт · 6%")
+        XCTAssertEqual(MenuModel.barTitle(for: ol, ratedWatts: 400), "⚡ \(Format.value(229, L10n.tr("V"), digits: 0)) · \(Format.value(24, L10n.tr("W"), digits: 0, approx: true)) · 6%")
         let ob = Reading.parse(sample(status: "OB DISCHRG", input: 0, load: 6, battery: 12.4), at: Date())
-        XCTAssertEqual(MenuModel.barTitle(for: ob, ratedWatts: 400), "🔋 12,4 В · ≈24 Вт · OB")
+        XCTAssertEqual(MenuModel.barTitle(for: ob, ratedWatts: 400), "🔋 \(Format.value(12.4, L10n.tr("V"), digits: 1)) · \(Format.value(24, L10n.tr("W"), digits: 0, approx: true)) · OB")
         let lb = Reading.parse(sample(status: "OB LB", input: 0, load: 6, battery: 10.9), at: Date())
-        XCTAssertEqual(MenuModel.barTitle(for: lb, ratedWatts: 400), "🔋 10,9 В · ≈24 Вт · OB LB")
-        XCTAssertEqual(MenuModel.barTitle(for: nil), "⚠️ UPS —")
+        XCTAssertEqual(MenuModel.barTitle(for: lb, ratedWatts: 400), "🔋 \(Format.value(10.9, L10n.tr("V"), digits: 1)) · \(Format.value(24, L10n.tr("W"), digits: 0, approx: true)) · OB LB")
+        XCTAssertEqual(MenuModel.barTitle(for: nil), "⚠️ \(L10n.tr("UPS")) —")
     }
 
     func testMenuValuesUseRussianFormatting() {
         let monitor = Monitor(settings: Settings(ratedWatts: 400), historyDirectory: directory)
         monitor.handle(.output(sampleOL), at: Date())
         let model = MenuModel.make(monitor.snapshot())
-        XCTAssertEqual(model.header, "MUSTEK UPS — 🟢 От сети")
-        XCTAssertEqual(value(model, "Вход"), "230,0 В")
-        XCTAssertEqual(value(model, "Выход"), "230,0 В")
-        XCTAssertEqual(value(model, "Частота"), "50,0 Гц")
-        XCTAssertEqual(value(model, "Нагрузка"), "5%")
-        XCTAssertEqual(value(model, "Мощность"), "≈20 Вт")
-        XCTAssertEqual(value(model, "Напряжение"), "13,5 В")
-        XCTAssertEqual(value(model, "Режим"), "От сети")
-        XCTAssertEqual(value(model, "Заряд"), "Нет данных")
-        XCTAssertEqual(value(model, "Оставшееся время (NUT)"), "Нет данных")
-        XCTAssertEqual(value(model, "Последнее отключение"), "не зафиксировано")
-        XCTAssertEqual(value(model, "ИБП"), "25 °C")
-        XCTAssertEqual(value(model, "Сегодня"), "≈0,000 кВт·ч")
-        XCTAssertEqual(value(model, "NUT"), "подключён")
-        XCTAssertEqual(value(model, "Драйвер"), "quiet")
-        XCTAssertEqual(model.sections.first { $0.title.hasPrefix("Аккумулятор") }?.title, "Аккумулятор")
+        XCTAssertEqual(model.header, "MUSTEK \(L10n.tr("UPS")) — 🟢 \(L10n.tr("On mains"))")
+        XCTAssertEqual(value(model, L10n.tr("Input")), Format.value(230, L10n.tr("V"), digits: 1))
+        XCTAssertEqual(value(model, L10n.tr("Quit")), Format.value(230, L10n.tr("V"), digits: 1))
+        XCTAssertEqual(value(model, L10n.tr("Frequency")), Format.value(50, L10n.tr("Hz"), digits: 1))
+        XCTAssertEqual(value(model, L10n.tr("Load")), "5%")
+        XCTAssertEqual(value(model, L10n.tr("Power")), Format.value(20, L10n.tr("W"), digits: 0, approx: true))
+        XCTAssertEqual(value(model, L10n.tr("Voltage")), Format.value(13.5, L10n.tr("V"), digits: 1))
+        XCTAssertEqual(value(model, L10n.tr("Mode")), L10n.tr("On mains"))
+        XCTAssertEqual(value(model, L10n.tr("Charge")), L10n.tr("No data"))
+        XCTAssertEqual(value(model, L10n.tr("Remaining runtime (NUT)")), L10n.tr("No data"))
+        XCTAssertEqual(value(model, L10n.tr("Last outage")), L10n.tr("not recorded"))
+        XCTAssertEqual(value(model, L10n.tr("UPS")), "25 °C")
+        XCTAssertEqual(value(model, L10n.tr("Today")), Format.value(0, L10n.tr("kWh"), digits: 3, approx: true))
+        XCTAssertEqual(value(model, "NUT"), L10n.tr("connected"))
+        XCTAssertEqual(value(model, L10n.tr("Driver")), "quiet")
+        XCTAssertEqual(model.sections.first { $0.title.hasPrefix(L10n.tr("Battery")) }?.title, L10n.tr("Battery"))
     }
 
     func testMenuLayoutIsTheSameInEveryState() {

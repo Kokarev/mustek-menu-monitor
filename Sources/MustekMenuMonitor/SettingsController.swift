@@ -17,12 +17,12 @@ enum SettingsCheckFailure: Error, Equatable {
     var message: String {
         switch self {
         case .invalid(let issues): return issues.map(\.message).joined(separator: "\n")
-        case .noUpsName: return "Укажите имя ИБП."
-        case .upsc(.notFound): return "upsc не найден. Установите NUT (brew install nut) или укажите путь вручную."
+        case .noUpsName: return L10n.tr("Enter the UPS name.")
+        case .upsc(.notFound): return L10n.tr("upsc not found. Install NUT (brew install nut) or specify its path manually.")
         case .upsc(.userPathUnusable(_, let issue)): return issue.message
-        case .connection(let reason): return "Нет связи: \(reason)."
-        case .invalidResponse: return "Ответ NUT не содержит ups.status, input.voltage и ups.load."
-        case .saveFailed: return "Не удалось сохранить настройки."
+        case .connection(let reason): return L10n.format("Cannot connect: %@.", reason)
+        case .invalidResponse: return L10n.tr("NUT response lacks ups.status, input.voltage or ups.load.")
+        case .saveFailed: return L10n.tr("Could not save settings.")
         }
     }
 }
@@ -30,19 +30,19 @@ enum SettingsCheckFailure: Error, Equatable {
 extension SettingsIssue {
     var message: String {
         switch self {
-        case .upsNameEmpty: return "Укажите имя ИБП."
-        case .upsNameInvalidCharacters: return "Имя ИБП: только латинские буквы, цифры, «_», «.» и «-»."
-        case .upsNameLeadingHyphen: return "Имя ИБП не может начинаться с «-»."
-        case .hostEmpty: return "Укажите адрес сервера NUT."
-        case .hostInvalidCharacters: return "Адрес сервера: только латинские буквы, цифры, «.» и «-»."
-        case .hostLeadingHyphen: return "Адрес сервера не может начинаться с «-»."
-        case .hostIPv6NotSupported: return "Адреса IPv6 пока не поддерживаются."
-        case .portOutOfRange: return "Порт: целое число от 1 до 65535."
-        case .upscPathNotAbsolute: return "Путь к upsc должен быть полным (начинаться с «/»)."
-        case .upscPathNotFound: return "Файл upsc по указанному пути не найден."
-        case .upscPathNotExecutable: return "Указанный файл upsc не является исполняемым."
-        case .ratedWattsNotFinite, .ratedWattsOutOfRange: return "Номинальная мощность: число от 1 до 100000 Вт или пустое поле."
-        case .storedValueCorrupted: return "Сохранённое значение повреждено и сброшено."
+        case .upsNameEmpty: return L10n.tr("Enter the UPS name.")
+        case .upsNameInvalidCharacters: return L10n.tr("UPS name: use only Latin letters, digits, _, . and -.")
+        case .upsNameLeadingHyphen: return L10n.tr("UPS name cannot start with -.")
+        case .hostEmpty: return L10n.tr("Enter the NUT server address.")
+        case .hostInvalidCharacters: return L10n.tr("Server address: use only Latin letters, digits, . and -.")
+        case .hostLeadingHyphen: return L10n.tr("Server address cannot start with -.")
+        case .hostIPv6NotSupported: return L10n.tr("IPv6 addresses are not supported yet.")
+        case .portOutOfRange: return L10n.tr("Port must be an integer from 1 to 65535.")
+        case .upscPathNotAbsolute: return L10n.tr("upsc path must be absolute (start with /).")
+        case .upscPathNotFound: return L10n.tr("upsc file not found at the specified path.")
+        case .upscPathNotExecutable: return L10n.tr("The selected upsc file is not executable.")
+        case .ratedWattsNotFinite, .ratedWattsOutOfRange: return L10n.tr("Nominal power must be 1–100000 W, or leave the field empty.")
+        case .storedValueCorrupted: return L10n.tr("A stored value was invalid and has been reset.")
         }
     }
 }
@@ -165,11 +165,11 @@ struct SettingsCheckReport: Equatable {
     private static func failure(for outcome: UpscOutcome) -> SettingsCheckFailure {
         switch outcome {
         case .output: return .invalidResponse
-        case .timedOut: return .connection("тайм-аут")
-        case .launchError: return .connection("upsc не запускается")
+        case .timedOut: return .connection(L10n.tr("timeout"))
+        case .launchError: return .connection(L10n.tr("upsc could not start"))
         case .failed(_, let message):
             if case .noResponse(let reason) = LinkState.forFailure(message: message) { return .connection(reason) }
-            return .connection("данные устарели")
+            return .connection(L10n.tr("data stale"))
         }
     }
 }

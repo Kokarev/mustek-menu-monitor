@@ -44,6 +44,12 @@ opt-in with `MUSTEK_LIVE_UPSC=<ups@host:port>`; leave it unset for offline tests
 `MUSTEK_RENDER_DIR` optionally exports off-screen test PNGs; leave it unset when
 no artifacts are required. Crash tests signal only their own lock-holder helper.
 
+`Package.swift` processes the four `.lproj` catalogs with English as the default
+localization. Both app scripts copy the SwiftPM resource bundle into
+`Contents/Resources` before signing and declare all four supported languages in
+Info.plist. Keep this bundle with the executable when moving the app; do not
+ship the command-line executable alone.
+
 Generated `.build` and `dist` contents are ignored by Git. A local build is not
 Developer ID signed or notarized. Building does not create/publish a ZIP, tag or
 GitHub Release. Toolchain and source settings affect output; byte-for-byte

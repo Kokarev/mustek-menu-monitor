@@ -9,23 +9,23 @@ import AppKit
     private let portField = NSTextField()
     private let ratedWattsField = NSTextField()
     private let upsBox = NSComboBox()
-    private let findButton = NSButton(title: "Найти", target: nil, action: nil)
-    private let manualPath = NSButton(checkboxWithTitle: "Указать путь к upsc вручную", target: nil, action: nil)
+    private let findButton = NSButton(title: L10n.tr("Find"), target: nil, action: nil)
+    private let manualPath = NSButton(checkboxWithTitle: L10n.tr("Set upsc path manually"), target: nil, action: nil)
     private let pathField = NSTextField()
-    private let chooseButton = NSButton(title: "Выбрать…", target: nil, action: nil)
+    private let chooseButton = NSButton(title: L10n.tr("Choose…"), target: nil, action: nil)
     private let upscLabel = NSTextField(wrappingLabelWithString: "")
     private let activeLabel = NSTextField(wrappingLabelWithString: "")
     private let statusLabel = NSTextField(wrappingLabelWithString: "")
-    private let checkButton = NSButton(title: "Проверить", target: nil, action: nil)
-    private let saveButton = NSButton(title: "Сохранить", target: nil, action: nil)
-    private let closeButton = NSButton(title: "Закрыть", target: nil, action: nil)
+    private let checkButton = NSButton(title: L10n.tr("Check"), target: nil, action: nil)
+    private let saveButton = NSButton(title: L10n.tr("Save"), target: nil, action: nil)
+    private let closeButton = NSButton(title: L10n.tr("Close"), target: nil, action: nil)
     private var busy = false
 
     init(controller: SettingsController) {
         self.controller = controller
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 440),
                               styleMask: [.titled, .closable], backing: .buffered, defer: true)
-        window.title = "Настройки MUSTEK Menu Monitor" + (AppIdentity.isQA ? " — QA" : "")
+        window.title = L10n.tr("MUSTEK Menu Monitor Settings") + (AppIdentity.isQA ? " — QA" : "")
         window.isReleasedWhenClosed = false
         super.init(window: window)
         window.delegate = self
@@ -39,14 +39,14 @@ import AppKit
         let current = controller.current
         hostField.stringValue = current.host
         portField.stringValue = String(current.port)
-        ratedWattsField.stringValue = current.ratedWatts.map { String($0) } ?? ""
+        ratedWattsField.stringValue = current.ratedWatts.map { Format.inputNumber($0) } ?? ""
         upsBox.stringValue = current.upsName ?? ""
         manualPath.state = current.upscPath == nil ? .off : .on
         pathField.stringValue = current.upscPath ?? ""
         updatePathControls()
         showActive()
         statusLabel.stringValue = current.upsName == nil
-            ? "ИБП ещё не настроен. Укажите сервер NUT и имя ИБП, затем нажмите «Проверить» или «Сохранить»."
+            ? L10n.tr("UPS is not configured. Enter the NUT server and UPS name, then click Check or Save.")
             : ""
         refreshUpsc()
         window?.center()
@@ -62,9 +62,9 @@ import AppKit
         for field in [hostField, portField, pathField, ratedWattsField] { field.lineBreakMode = .byTruncatingMiddle }
         hostField.placeholderString = "127.0.0.1"
         portField.placeholderString = "3493"
-        ratedWattsField.placeholderString = "Вт; пусто — мощность неизвестна"
+        ratedWattsField.placeholderString = L10n.tr("W; leave empty if unknown")
         ratedWattsField.setAccessibilityIdentifier("ratedWatts")
-        upsBox.placeholderString = "имя ИБП в ups.conf"
+        upsBox.placeholderString = L10n.tr("UPS name in ups.conf")
         upsBox.completes = true
         pathField.placeholderString = "/opt/homebrew/bin/upsc"
         for label in [upscLabel, activeLabel, statusLabel] {
@@ -87,10 +87,10 @@ import AppKit
         let upsRow = NSStackView(views: [upsBox, findButton])
         let pathRow = NSStackView(views: [pathField, chooseButton])
         let grid = NSGridView(views: [
-            [label("Сервер NUT:"), hostField],
-            [label("Порт:"), portField],
-            [label("Имя ИБП:"), upsRow],
-            [label("Номинальная мощность, Вт:"), ratedWattsField],
+            [label(L10n.tr("NUT server:")), hostField],
+            [label(L10n.tr("Port:")), portField],
+            [label(L10n.tr("UPS name:")), upsRow],
+            [label(L10n.tr("Nominal power, W:")), ratedWattsField],
             [NSGridCell.emptyContentView, manualPath],
             [label("upsc:"), pathRow],
             [NSGridCell.emptyContentView, upscLabel],
@@ -150,9 +150,9 @@ import AppKit
     private func showActive() {
         let current = controller.current
         guard case .success(let target) = current.nutTarget() else {
-            activeLabel.stringValue = "Сейчас действует: ИБП не настроен."; return
+            activeLabel.stringValue = L10n.tr("Currently active: UPS not configured."); return
         }
-        activeLabel.stringValue = "Сейчас действует: \(target), upsc: \(current.upscPath ?? "автоматически")."
+        activeLabel.stringValue = L10n.format("Currently active: %@, upsc: %@.", target, current.upscPath ?? L10n.tr("automatic"))
     }
 
     private func show(_ failure: SettingsCheckFailure) {
@@ -160,9 +160,9 @@ import AppKit
     }
 
     private func describe(_ report: SettingsCheckReport) -> String {
-        var parts = ["статус \(report.status)"]
-        if let input = report.input { parts.append("вход \(Format.number(input, digits: 1...1)) В") }
-        if let load = report.load { parts.append("нагрузка \(Format.number(load, digits: 0...1))%") }
+        var parts = [L10n.format("status %@", report.status)]
+        if let input = report.input { parts.append(L10n.format("input %@", Format.value(input, L10n.tr("V"), digits: 1))) }
+        if let load = report.load { parts.append(L10n.format("load %@", Format.value(load, "%", digits: 0...1, space: false))) }
         return "\(report.target): " + parts.joined(separator: ", ")
     }
 
@@ -173,11 +173,11 @@ import AppKit
         case .failure(let error):
             upscLabel.stringValue = SettingsCheckFailure.upsc(error).message
         case .success(let path):
-            upscLabel.stringValue = "Используется \(path)"
+            upscLabel.stringValue = L10n.format("Using %@", path)
             Task {
                 guard let version = await controller.version(path: path) else { return }
                 if case .success(path) = controller.locateUpsc(for: self.draft() ?? draft) {
-                    upscLabel.stringValue = "Используется \(path) — \(version)"
+                    upscLabel.stringValue = L10n.format("Using %@", path) + " — " + version
                 }
             }
         }
@@ -198,7 +198,7 @@ import AppKit
         panel.showsHiddenFiles = true
         panel.treatsFilePackagesAsDirectories = true
         panel.directoryURL = URL(fileURLWithPath: "/opt/homebrew/bin")
-        panel.message = "Выберите исполняемый файл upsc"
+        panel.message = L10n.tr("Choose the upsc executable")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         pathField.stringValue = url.path
         refreshUpsc()
@@ -206,49 +206,49 @@ import AppKit
 
     @objc private func find() {
         guard !busy, let draft = draft() else { return }
-        setBusy(true, "Поиск ИБП на \(draft.host):\(draft.port)…")
+        setBusy(true, L10n.format("Finding UPS devices on %@:%@…", draft.host, String(draft.port)))
         Task {
             let result = await controller.discover(draft)
             setBusy(false)
             switch result {
             case .failure(let failure): show(failure)
             case .success(let names) where names.isEmpty:
-                statusLabel.stringValue = "⚠️ Сервер NUT ответил, но ИБП не найдено."
+                statusLabel.stringValue = "⚠️ " + L10n.tr("NUT server responded, but no UPS devices were found.")
             case .success(let names):
                 upsBox.removeAllItems()
                 upsBox.addItems(withObjectValues: names)
                 if !names.contains(upsBox.stringValue) { upsBox.stringValue = names[0] }
-                statusLabel.stringValue = "Найдено: \(names.joined(separator: ", ")). Выберите ИБП и нажмите «Проверить»."
+                statusLabel.stringValue = L10n.format("Found: %@. Select a UPS and click Check.", names.joined(separator: ", "))
             }
         }
     }
 
     @objc private func check() {
         guard !busy, let draft = draft() else { return }
-        setBusy(true, "Проверка подключения…")
+        setBusy(true, L10n.tr("Checking connection…"))
         Task {
             let result = await controller.check(draft)
             setBusy(false)
             switch result {
             case .failure(let failure): show(failure)
             case .success(let report):
-                statusLabel.stringValue = "✅ Есть связь — \(describe(report)). Настройки ещё не сохранены."
+                statusLabel.stringValue = "✅ " + L10n.format("Connected — %@. Settings have not been saved yet.", describe(report))
             }
         }
     }
 
     @objc private func save() {
         guard !busy, let draft = draft() else { return }
-        setBusy(true, "Проверка и сохранение…")
+        setBusy(true, L10n.tr("Checking and saving…"))
         Task {
             let result = await controller.save(draft)
             setBusy(false)
             showActive()
             switch result {
             case .failure(let failure):
-                statusLabel.stringValue = "⚠️ " + failure.message + "\nНастройки не сохранены; действуют прежние."
+                statusLabel.stringValue = "⚠️ " + failure.message + "\n" + L10n.tr("Settings not saved; previous settings remain active.")
             case .success(let report):
-                statusLabel.stringValue = "✅ Сохранено и применено — \(describe(report))."
+                statusLabel.stringValue = "✅ " + L10n.format("Saved and applied — %@.", describe(report))
             }
         }
     }

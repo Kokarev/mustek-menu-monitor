@@ -21,7 +21,7 @@ enum AppIdentity {
     static func settingsDefaults() -> UserDefaults {
         guard let settingsSuite else { return .standard }
         guard let suite = UserDefaults(suiteName: settingsSuite) else {
-            fatalError("QA settings suite unavailable; refusing to fall back to the standard domain")
+            fatalError(L10n.tr("QA settings suite unavailable; refusing to use production settings."))
         }
         return suite
     }

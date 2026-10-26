@@ -26,7 +26,7 @@ import XCTest
     }
 
     private func battery(_ model: MenuModel) throws -> [String: String] {
-        let section = try XCTUnwrap(model.sections.first { $0.title == "Аккумулятор" })
+        let section = try XCTUnwrap(model.sections.first { $0.title == L10n.tr("Battery") })
         return Dictionary(uniqueKeysWithValues: section.rows.map { ($0.label, $0.value) })
     }
 
@@ -37,18 +37,18 @@ import XCTest
         XCTAssertEqual(reading.batteryCharge, 76.5)
         XCTAssertEqual(reading.batteryRuntime, 1800)
         let values = try battery(model(raw))
-        XCTAssertEqual(values["Напряжение"], "12,7 В")
-        XCTAssertEqual(values["Заряд"], "76,5 %")
-        XCTAssertEqual(values["Оставшееся время (NUT)"], "1800 с")
-        XCTAssertEqual(values["Режим"], "От сети")
+        XCTAssertEqual(values[L10n.tr("Voltage")], Format.value(12.7, L10n.tr("V"), digits: 1))
+        XCTAssertEqual(values[L10n.tr("Charge")], Format.value(76.5, "%", digits: 0...1))
+        XCTAssertEqual(values[L10n.tr("Remaining runtime (NUT)")], Format.value(1800, L10n.tr("s"), digits: 0))
+        XCTAssertEqual(values[L10n.tr("Mode")], L10n.tr("On mains"))
     }
 
     func testPartialBatteryFieldsDoNotInventTheMissingValues() throws {
         let raw = telemetry(["battery.charge": "50"])
         let values = try battery(model(raw))
-        XCTAssertEqual(values["Заряд"], "50 %")
-        XCTAssertEqual(values["Напряжение"], "Нет данных")
-        XCTAssertEqual(values["Оставшееся время (NUT)"], "Нет данных")
+        XCTAssertEqual(values[L10n.tr("Charge")], "50 %")
+        XCTAssertEqual(values[L10n.tr("Voltage")], L10n.tr("No data"))
+        XCTAssertEqual(values[L10n.tr("Remaining runtime (NUT)")], L10n.tr("No data"))
     }
 
     func testAbsentBatteryFieldsShowNoDataAndNoDemonstrationProfile() throws {
@@ -59,8 +59,8 @@ import XCTest
         XCTAssertNil(reading.batteryRuntime)
         let values = try battery(model(raw))
         XCTAssertEqual(values.count, 4)
-        for label in ["Напряжение", "Заряд", "Оставшееся время (NUT)"] {
-            XCTAssertEqual(values[label], "Нет данных")
+        for label in [L10n.tr("Voltage"), L10n.tr("Charge"), L10n.tr("Remaining runtime (NUT)")] {
+            XCTAssertEqual(values[label], L10n.tr("No data"))
         }
         for label in ["Номинальная ёмкость", "Номинальная энергия", "Установлен", "Расчётный заряд", "Мин. напряжение"] {
             XCTAssertNil(values[label])
@@ -78,23 +78,23 @@ import XCTest
         XCTAssertEqual(reading.batteryCharge, 0)
         XCTAssertEqual(reading.batteryRuntime, 0)
         let values = try battery(model(raw))
-        XCTAssertEqual(values["Напряжение"], "0,0 В")
-        XCTAssertEqual(values["Заряд"], "0 %")
-        XCTAssertEqual(values["Оставшееся время (NUT)"], "0 с")
+        XCTAssertEqual(values[L10n.tr("Voltage")], Format.value(0, L10n.tr("V"), digits: 1))
+        XCTAssertEqual(values[L10n.tr("Charge")], "0 %")
+        XCTAssertEqual(values[L10n.tr("Remaining runtime (NUT)")], Format.value(0, L10n.tr("s"), digits: 0))
     }
 
     func testMalformedAndStaleBatteryValuesAreNotDisplayed() throws {
         let raw = telemetry(["battery.voltage": "nan", "battery.charge": "unknown", "battery.runtime": "inf"])
         let values = try battery(model(raw))
-        for label in ["Напряжение", "Заряд", "Оставшееся время (NUT)"] {
-            XCTAssertEqual(values[label], "Нет данных")
+        for label in [L10n.tr("Voltage"), L10n.tr("Charge"), L10n.tr("Remaining runtime (NUT)")] {
+            XCTAssertEqual(values[label], L10n.tr("No data"))
         }
         let m = Monitor(historyDirectory: directory)
         m.handle(.output(telemetry(["battery.voltage": "12", "battery.charge": "80", "battery.runtime": "600"])), at: now)
         m.handle(.timedOut, at: now.addingTimeInterval(5))
         let stale = try battery(MenuModel.make(m.snapshot()))
-        for label in ["Напряжение", "Заряд", "Оставшееся время (NUT)"] {
-            XCTAssertEqual(stale[label], "Нет данных")
+        for label in [L10n.tr("Voltage"), L10n.tr("Charge"), L10n.tr("Remaining runtime (NUT)")] {
+            XCTAssertEqual(stale[label], L10n.tr("No data"))
         }
     }
 
@@ -109,8 +109,8 @@ import XCTest
             m.handle(.output(raw), at: now.addingTimeInterval(Double(i) * 5))
             let visible = MenuModel.make(m.snapshot())
             if status == "OB LB" {
-                XCTAssertTrue(visible.header.contains("низкий заряд"))
-                XCTAssertTrue(visible.statusBarTitle.contains("Нет данных"))
+                XCTAssertTrue(visible.header.contains(L10n.tr("On battery, low battery")))
+                XCTAssertTrue(visible.statusBarTitle.contains(L10n.tr("No data")))
                 XCTAssertTrue(visible.statusBarTitle.hasSuffix("OB LB"))
             }
         }
