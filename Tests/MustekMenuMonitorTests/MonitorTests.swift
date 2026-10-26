@@ -247,7 +247,7 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
         let model = MenuModel.make(monitor.snapshot())
         XCTAssertEqual(model.header, "MUSTEK \(L10n.tr("UPS")) — 🟢 \(L10n.tr("On mains"))")
         XCTAssertEqual(value(model, L10n.tr("Input")), Format.value(230, L10n.tr("V"), digits: 1))
-        XCTAssertEqual(value(model, L10n.tr("Quit")), Format.value(230, L10n.tr("V"), digits: 1))
+        XCTAssertEqual(value(model, L10n.tr("Output")), Format.value(230, L10n.tr("V"), digits: 1))
         XCTAssertEqual(value(model, L10n.tr("Frequency")), Format.value(50, L10n.tr("Hz"), digits: 1))
         XCTAssertEqual(value(model, L10n.tr("Load")), "5%")
         XCTAssertEqual(value(model, L10n.tr("Power")), Format.value(20, L10n.tr("W"), digits: 0, approx: true))

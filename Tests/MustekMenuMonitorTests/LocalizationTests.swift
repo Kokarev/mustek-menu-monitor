@@ -58,6 +58,22 @@ import XCTest
         }
     }
 
+    /// D-1: in Russian "Output" and "Quit" are both «Выход», so the output-voltage row once picked up the "Quit" key.
+    func testOutputVoltageRowUsesTheOutputKey() throws {
+        let snapshot = MonitorSnapshot(link: .waiting, reading: nil, lastSuccess: nil, todayWh: 0, monthWh: 0,
+                                       currentOutage: nil, lastOutage: nil, now: Date())
+        let mains = try XCTUnwrap(MenuModel.make(snapshot).sections.first)
+        XCTAssertEqual(mains.rows.map(\.label), [L10n.tr("Input"), L10n.tr("Output"), L10n.tr("Frequency")])
+        for language in ["en", "uk", "de"] {
+            let localizer = AppLocalization(preferences: [language])
+            XCTAssertNotEqual(localizer.text("Output"), localizer.text("Quit"), language)
+        }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let source = try String(contentsOf: root.appendingPathComponent("Sources/MustekMenuMonitor/MenuModel.swift"))
+        let outputRow = try XCTUnwrap(source.split(separator: "\n").first { $0.contains("r?.output") })
+        XCTAssertTrue(outputRow.contains(#"L10n.tr("Output")"#), String(outputRow))
+    }
+
     func testNumbersDatesAndInputFollowTheRequestedSystemLocale() {
         XCTAssertEqual(Format.number(1234.5, digits: 1...1, locale: Locale(identifier: "en_GB")), "1234.5")
         for locale in ["uk_UA", "de_DE", "ru_RU"] {

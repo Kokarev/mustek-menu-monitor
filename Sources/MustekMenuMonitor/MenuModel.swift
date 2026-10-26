@@ -55,7 +55,7 @@ struct MenuModel: Equatable {
             sections: [
                 MenuSection(title: L10n.tr("Mains"), rows: [
                     MenuRow(label: L10n.tr("Input"), value: Format.value(r?.input, L10n.tr("V"), digits: 1)),
-                    MenuRow(label: L10n.tr("Quit"), value: Format.value(r?.output, L10n.tr("V"), digits: 1)),
+                    MenuRow(label: L10n.tr("Output"), value: Format.value(r?.output, L10n.tr("V"), digits: 1)),
                     MenuRow(label: L10n.tr("Frequency"), value: Format.value(r?.frequency, L10n.tr("Hz"), digits: 1)),
                 ]),
                 MenuSection(title: L10n.tr("Load"), rows: [
