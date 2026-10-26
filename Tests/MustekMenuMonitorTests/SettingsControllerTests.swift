@@ -199,6 +199,26 @@ final class FakeExecutor: @unchecked Sendable {
         XCTAssertNil(SettingsStore(defaults: backend).load().settings.ratedWatts)
         XCTAssertNil(applied.last?.ratedWatts)
     }
+
+    /// U-1: a long upsc line (path and version) wraps inside the fixed-size window instead of running past its edge.
+    func testUpscLineWrapsInsideTheSettingsWindow() throws {
+        let settings = SettingsWindowController(controller: controller())
+        let content = try XCTUnwrap(settings.window?.contentView)
+        let label = settings.upscLabel
+        label.stringValue = "Використовується /Users/example/Applications/Network UPS Tools/bin/upsc — Network UPS Tools upsc 2.8.5 release"
+        content.layoutSubtreeIfNeeded()
+        let oneLine = label.font!.boundingRectForFont.height
+        let frame = label.convert(label.bounds, to: content)
+        XCTAssertEqual(content.bounds.width, 640)
+        XCTAssertLessThanOrEqual(frame.maxX, content.bounds.width - 20 + 0.5)
+        XCTAssertGreaterThan(frame.height, oneLine * 1.5)
+        let needed = try XCTUnwrap(label.cell).cellSize(forBounds: NSRect(x: 0, y: 0, width: frame.width, height: .greatestFiniteMagnitude))
+        XCTAssertLessThanOrEqual(needed.height, frame.height + 0.5)
+        // The extra line must not push the buttons out of the window.
+        func buttons(in view: NSView) -> [NSButton] { view.subviews.flatMap { ($0 as? NSButton).map { [$0] } ?? buttons(in: $0) } }
+        let save = try XCTUnwrap(buttons(in: content).first { $0.title == L10n.tr("Save") })
+        XCTAssertTrue(content.bounds.contains(save.convert(save.bounds, to: content)))
+    }
 }
 
 final class AppIdentityTests: XCTestCase {

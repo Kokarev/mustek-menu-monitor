@@ -13,7 +13,8 @@ import AppKit
     private let manualPath = NSButton(checkboxWithTitle: L10n.tr("Set upsc path manually"), target: nil, action: nil)
     private let pathField = NSTextField()
     private let chooseButton = NSButton(title: L10n.tr("Choose…"), target: nil, action: nil)
-    private let upscLabel = NSTextField(wrappingLabelWithString: "")
+    /// Internal for layout tests only.
+    let upscLabel = NSTextField(wrappingLabelWithString: "")
     private let activeLabel = NSTextField(wrappingLabelWithString: "")
     private let statusLabel = NSTextField(wrappingLabelWithString: "")
     private let checkButton = NSButton(title: L10n.tr("Check"), target: nil, action: nil)
@@ -118,6 +119,12 @@ import AppKit
             stack.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor),
             buttons.widthAnchor.constraint(equalTo: grid.widthAnchor),
         ])
+        // The upsc line gets its version later and is longer in some languages: wrap it within
+        // the value column of this fixed-size window rather than at 480 pt past its edge (U-1).
+        let labelColumn = (0..<grid.numberOfRows)
+            .compactMap { grid.cell(atColumnIndex: 0, rowIndex: $0).contentView?.fittingSize.width }.max() ?? 0
+        upscLabel.preferredMaxLayoutWidth = min(480, content.bounds.width - stack.edgeInsets.left
+                                                - stack.edgeInsets.right - grid.columnSpacing - labelColumn)
     }
 
     private func label(_ text: String) -> NSTextField { NSTextField(labelWithString: text) }
