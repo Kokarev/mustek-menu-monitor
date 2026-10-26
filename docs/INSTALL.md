@@ -20,9 +20,11 @@ to your installation, then build. The application requires `ups.status`,
 timeout, followed by termination and, if necessary, a kill of that client child.
 This does not stop the NUT server or driver.
 
-Update the example battery profile in `Battery.swift` and the fixed 400 W rating
-in `Reading.swift` for your own hardware. These are compile-time values in
-0.1.3; there is no runtime configuration file.
+Update the example battery profile in `Battery.swift` for your own hardware.
+In the settings window, enter the UPS nominal output power in watts, or leave
+it empty when unknown. An empty rating disables new power/energy estimates
+without discarding previously recorded energy. No history is recalculated when
+the rating changes.
 
 ## Fresh manual installation
 

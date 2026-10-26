@@ -1,7 +1,7 @@
 import Foundation
 
 /// User configuration for the NUT connection and power estimate.
-/// Not yet used by the monitor; defaults carry no demonstration values.
+/// Defaults carry no demonstration values or assumed power rating.
 struct Settings: Equatable {
     static let defaultHost = "127.0.0.1"
     static let defaultPort = 3493

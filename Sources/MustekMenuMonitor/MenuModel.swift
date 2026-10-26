@@ -20,12 +20,16 @@ struct MonitorSnapshot {
     var currentOutage: Outage?
     var lastOutage: Outage?
     var now: Date
+    var ratedWatts: Double? = nil
+    var hasTodayEnergy = false
+    var hasMonthEnergy = false
 }
 
 extension Monitor {
     func snapshot(now: Date = Date()) -> MonitorSnapshot {
         MonitorSnapshot(link: link, reading: reading, lastSuccess: lastSuccess, todayWh: todayWh, monthWh: monthWh,
-                        currentOutage: currentOutage, lastOutage: lastOutage, now: now)
+                        currentOutage: currentOutage, lastOutage: lastOutage, now: now, ratedWatts: settings.ratedWatts,
+                        hasTodayEnergy: hasTodayEnergy, hasMonthEnergy: hasMonthEnergy)
     }
 }
 
@@ -46,7 +50,7 @@ struct MenuModel: Equatable {
         let dash = unavailable
         let outage = s.currentOutage ?? s.lastOutage
         return MenuModel(
-            statusBarTitle: barTitle(for: r),
+            statusBarTitle: barTitle(for: r, ratedWatts: s.ratedWatts),
             header: "MUSTEK UPS — \(stateText(link: s.link, reading: r))",
             sections: [
                 MenuSection(title: "Электросеть", rows: [
@@ -56,7 +60,7 @@ struct MenuModel: Equatable {
                 ]),
                 MenuSection(title: "Нагрузка", rows: [
                     MenuRow(label: "Нагрузка", value: Format.value(r?.load, "%", digits: 0...1, space: false)),
-                    MenuRow(label: "Мощность", value: Format.value(r?.estimatedWatts, "Вт", digits: 0, approx: true)),
+                    MenuRow(label: "Мощность", value: s.ratedWatts == nil ? "не настроена" : Format.value(r?.estimatedWatts(ratedWatts: s.ratedWatts), "Вт", digits: 0, approx: true)),
                 ]),
                 MenuSection(title: "Аккумулятор — \(battery.model)", rows: [
                     MenuRow(label: "Напряжение", value: Format.value(r?.batteryVoltage, "В", digits: 1)),
@@ -78,8 +82,8 @@ struct MenuModel: Equatable {
                     MenuRow(label: "ИБП", value: Format.value(r?.temperature, "°C", digits: 0...1)),
                 ]),
                 MenuSection(title: "Статистика", rows: [
-                    MenuRow(label: "Сегодня", value: Format.value(s.todayWh / 1000, "кВт·ч", digits: 3, approx: true)),
-                    MenuRow(label: "Этот месяц", value: Format.value(s.monthWh / 1000, "кВт·ч", digits: 3, approx: true)),
+                    MenuRow(label: "Сегодня", value: s.ratedWatts == nil && !s.hasTodayEnergy ? "не настроено" : Format.value(s.todayWh / 1000, "кВт·ч", digits: 3, approx: true)),
+                    MenuRow(label: "Этот месяц", value: s.ratedWatts == nil && !s.hasMonthEnergy ? "не настроено" : Format.value(s.monthWh / 1000, "кВт·ч", digits: 3, approx: true)),
                 ]),
                 MenuSection(title: "Диагностика", rows: [
                     MenuRow(label: "NUT", value: linkText(s.link)),
@@ -88,13 +92,13 @@ struct MenuModel: Equatable {
                     MenuRow(label: "Последнее обновление", value: s.lastSuccess.map(Format.time) ?? dash),
                 ]),
             ],
-            note: "Оценка: нагрузка × 400 Вт, не счётчик сети")
+            note: s.ratedWatts.map { "Оценка: нагрузка × \(Format.number($0, digits: 0...2)) Вт / 100; не счётчик сети" } ?? "Номинальная мощность не настроена; новые Wh не рассчитываются")
     }
 
     /// v0.1.1 format on mains; battery voltage and OB on battery; a warning dash without fresh data.
-    static func barTitle(for r: Reading?) -> String {
+    static func barTitle(for r: Reading?, ratedWatts: Double? = nil) -> String {
         guard let r else { return "⚠️ UPS —" }
-        let watts = r.estimatedWatts.map { String(format: "≈%.0f Вт", $0) } ?? "— Вт"
+        let watts = r.estimatedWatts(ratedWatts: ratedWatts).map { String(format: "≈%.0f Вт", $0) } ?? (ratedWatts == nil ? "мощность не настроена" : "— Вт")
         if r.onBattery {
             let volts = Format.value(r.batteryVoltage, "В", digits: 1)
             return "🔋 \(volts) · \(watts) · OB" + (r.lowBattery ? " LB" : "")

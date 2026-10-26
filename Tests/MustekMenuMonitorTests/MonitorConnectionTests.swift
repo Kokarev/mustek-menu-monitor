@@ -94,7 +94,7 @@ final class ControlledRunner: @unchecked Sendable {
     }
 
     private func configured(_ name: String = "mustek", path: String? = nil) -> Settings {
-        Settings(upsName: name, upscPath: path)
+        Settings(upsName: name, upscPath: path, ratedWatts: 400)
     }
 
     // MARK: Connection from settings
@@ -227,7 +227,7 @@ final class ControlledRunner: @unchecked Sendable {
         XCTAssertNil(monitor.lastSuccess)
         monitor.handle(.output(sample(load: 50)), at: t0.addingTimeInterval(10))
         // The first sample after the change starts a new chain: no energy bridged across it.
-        XCTAssertEqual(lines("history.csv").last?.split(separator: ",", omittingEmptySubsequences: false)[6], "0.0")
+        XCTAssertEqual(lines("history.csv").last?.split(separator: ",", omittingEmptySubsequences: false)[6], "")
         XCTAssertEqual(monitor.todayWh, before)
         // Existing rows are untouched and the format is unchanged.
         let rows = lines("history.csv")

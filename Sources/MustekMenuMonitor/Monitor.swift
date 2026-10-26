@@ -60,6 +60,8 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     private(set) var lastSuccess: Date?
     private(set) var todayWh: Double = 0
     private(set) var monthWh: Double = 0
+    private(set) var hasTodayEnergy = false
+    private(set) var hasMonthEnergy = false
     private(set) var sampleCount: Int = 0
     /// Outage in progress (OB seen, no OL since), restored from power_events.csv after a restart.
     private(set) var currentOutage: Outage?
@@ -127,9 +129,14 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     /// Replaces the settings. A changed connection starts a new generation: the integration
     /// chain and last reading are dropped, the link waits, and a poll starts at once if running.
     func apply(_ settings: Settings) {
+        let ratingChanged = self.settings.ratedWatts != settings.ratedWatts
         self.settings = settings
+        if ratingChanged { previous = nil }
         let next = UpscConnection(settings)
-        guard next != connection else { return }
+        guard next != connection else {
+            if ratingChanged { onChange?() }
+            return
+        }
         // Another UPS (or none) must never close this UPS's outage.
         if currentOutage != nil, outageOwner != next?.target { interruptOutage(at: Date()) }
         connection = next
@@ -191,13 +198,16 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
             fail(LinkState.forFailure(message: message))
         case .output(let raw):
             guard let next = Reading.parse(raw, at: now) else { fail(.invalid); return }
-            if let prev = previous, let p1 = prev.estimatedWatts, let p2 = next.estimatedWatts,
+            let watts = next.estimatedWatts(ratedWatts: settings.ratedWatts)
+            if let prev = previous,
+               let p1 = prev.estimatedWatts(ratedWatts: settings.ratedWatts), let p2 = watts,
+               next.timestamp.timeIntervalSince(prev.timestamp) >= 0,
                next.timestamp.timeIntervalSince(prev.timestamp) <= 30 {
                 // Trapezoidal integration; estimates UPS output energy, not mains input consumption.
                 let wh = (p1 + p2) / 2 * next.timestamp.timeIntervalSince(prev.timestamp) / 3600
                 appendSample(next, deltaWh: wh)
-            } else { appendSample(next, deltaWh: 0) }
-            previous = next
+            } else { appendSample(next, deltaWh: nil) }
+            previous = watts == nil ? nil : next
             reading = next
             lastSuccess = now
             link = .ok
@@ -251,11 +261,11 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         onChange?()
     }
 
-    private func appendSample(_ r: Reading, deltaWh: Double) {
+    private func appendSample(_ r: Reading, deltaWh: Double?) {
         let fields: [String] = [iso.string(from: r.timestamp), r.status,
             r.input.map { String($0) } ?? "", r.output.map { String($0) } ?? "",
-            r.load.map { String($0) } ?? "", r.estimatedWatts.map { String($0) } ?? "",
-            String(deltaWh), r.batteryVoltage.map { String($0) } ?? ""]
+            r.load.map { String($0) } ?? "", r.estimatedWatts(ratedWatts: settings.ratedWatts).map { String($0) } ?? "",
+            deltaWh.map { String($0) } ?? "", r.batteryVoltage.map { String($0) } ?? ""]
         let line = fields.joined(separator: ",") + "\n"
         let url = historyURL
         if !fm.fileExists(atPath: url.path) {
@@ -269,9 +279,11 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         } catch { return }
         // Totals follow only what reached the file, so a restart recomputes the same values.
         rollTotalsIfNeeded(now: r.timestamp)
-        if deltaWh.isFinite, deltaWh >= 0 {
+        if let deltaWh, deltaWh.isFinite, deltaWh >= 0 {
             todayWh += deltaWh
             monthWh += deltaWh
+            hasTodayEnergy = true
+            hasMonthEnergy = true
         }
         sampleCount += 1
     }
@@ -279,8 +291,12 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     /// Resets the day and month totals when the calendar day or month changes.
     private func rollTotalsIfNeeded(now: Date) {
         let calendar = Calendar.current
-        if !calendar.isDate(now, equalTo: totalsDate, toGranularity: .month) { monthWh = 0 }
-        if !calendar.isDate(now, inSameDayAs: totalsDate) { todayWh = 0 }
+        if !calendar.isDate(now, equalTo: totalsDate, toGranularity: .month) {
+            monthWh = 0; hasMonthEnergy = false
+        }
+        if !calendar.isDate(now, inSameDayAs: totalsDate) {
+            todayWh = 0; hasTodayEnergy = false
+        }
         totalsDate = now
     }
 
@@ -292,10 +308,11 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         let ownsRestoredOutage = currentOutage != nil && outageOwner == connection?.target
         for line in text.split(separator: "\n").dropFirst() {
             let parts = line.split(separator: ",", omittingEmptySubsequences: false)
-            guard parts.count >= 7, let date = iso.date(from: String(parts[0])),
-                  let wh = Double(parts[6]), wh.isFinite, wh >= 0 else { continue }
-            if calendar.isDate(date, inSameDayAs: now) { today += wh }
-            if calendar.isDate(date, equalTo: now, toGranularity: .month) { month += wh }
+            guard parts.count == 8, let date = iso.date(from: String(parts[0])) else { continue }
+            if let wh = Double(parts[6]), wh.isFinite, wh >= 0 {
+                if calendar.isDate(date, inSameDayAs: now) { today += wh; hasTodayEnergy = true }
+                if calendar.isDate(date, equalTo: now, toGranularity: .month) { month += wh; hasMonthEnergy = true }
+            }
             count += 1
             // An outage still open after a restart regains its OB voltage samples from history,
             // but only when it belongs to this connection: history rows carry no UPS identity, and

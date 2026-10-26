@@ -89,8 +89,11 @@ The interface is currently in Russian. Data is stored under
   when a transition is recorded.
 - `.lock`: informational PID; the live kernel lock determines ownership.
 
-The fixed 400 W rating used for power estimates must match your hardware.
-Load percentage may not represent true watts; energy is not a utility meter
+Set the UPS nominal output power in watts in Settings. Estimated power is
+`ratedWatts * load_percent / 100`. With no rating, new power and energy fields
+are left empty; historical Wh remain visible. Changing the rating breaks the
+integration chain without rewriting history. A configured zero load records
+zero watts. Load percentage may not represent true watts; energy is not a utility meter
 reading and excludes UPS conversion losses. Charge and remaining runtime are
 not calibrated. A 10.5 V battery value is only a reference, not a control limit.
 Missing samples and downtime are not backfilled. After a monitoring gap, outage

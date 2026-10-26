@@ -41,7 +41,7 @@ extension SettingsIssue {
         case .upscPathNotAbsolute: return "Путь к upsc должен быть полным (начинаться с «/»)."
         case .upscPathNotFound: return "Файл upsc по указанному пути не найден."
         case .upscPathNotExecutable: return "Указанный файл upsc не является исполняемым."
-        case .ratedWattsNotFinite, .ratedWattsOutOfRange: return "Некорректная номинальная мощность."
+        case .ratedWattsNotFinite, .ratedWattsOutOfRange: return "Номинальная мощность: число от 1 до 100000 Вт или пустое поле."
         case .storedValueCorrupted: return "Сохранённое значение повреждено и сброшено."
         }
     }
@@ -81,8 +81,8 @@ struct SettingsCheckReport: Equatable {
         self.apply = apply
     }
 
-    /// Settings from the window's fields; values the window does not edit are kept from `current`.
-    func draft(upsName: String, host: String, port: String, upscPath: String?) -> Result<Settings, SettingsCheckFailure> {
+    /// Settings from the window's fields. A nil power field preserves `current`; empty text clears it.
+    func draft(upsName: String, host: String, port: String, upscPath: String?, ratedWatts: String? = nil) -> Result<Settings, SettingsCheckFailure> {
         var draft = current
         let name = upsName.trimmingCharacters(in: .whitespaces)
         draft.upsName = name.isEmpty ? nil : name
@@ -90,6 +90,15 @@ struct SettingsCheckReport: Equatable {
         guard let number = Int(port.trimmingCharacters(in: .whitespaces)) else { return .failure(.invalid([.portOutOfRange])) }
         draft.port = number
         draft.upscPath = upscPath?.trimmingCharacters(in: .whitespaces)
+        if let ratedWatts {
+            let text = ratedWatts.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
+            if text.isEmpty { draft.ratedWatts = nil }
+            else {
+                guard let value = Double(text), value.isFinite else { return .failure(.invalid([.ratedWattsNotFinite])) }
+                guard Settings.ratedWattsRange.contains(value) else { return .failure(.invalid([.ratedWattsOutOfRange])) }
+                draft.ratedWatts = value
+            }
+        }
         return .success(draft)
     }
 

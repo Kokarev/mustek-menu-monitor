@@ -7,6 +7,7 @@ import AppKit
 
     private let hostField = NSTextField()
     private let portField = NSTextField()
+    private let ratedWattsField = NSTextField()
     private let upsBox = NSComboBox()
     private let findButton = NSButton(title: "Найти", target: nil, action: nil)
     private let manualPath = NSButton(checkboxWithTitle: "Указать путь к upsc вручную", target: nil, action: nil)
@@ -22,7 +23,7 @@ import AppKit
 
     init(controller: SettingsController) {
         self.controller = controller
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 360),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 440),
                               styleMask: [.titled, .closable], backing: .buffered, defer: true)
         window.title = "Настройки MUSTEK Menu Monitor" + (AppIdentity.isQA ? " — QA" : "")
         window.isReleasedWhenClosed = false
@@ -38,6 +39,7 @@ import AppKit
         let current = controller.current
         hostField.stringValue = current.host
         portField.stringValue = String(current.port)
+        ratedWattsField.stringValue = current.ratedWatts.map { String($0) } ?? ""
         upsBox.stringValue = current.upsName ?? ""
         manualPath.state = current.upscPath == nil ? .off : .on
         pathField.stringValue = current.upscPath ?? ""
@@ -57,9 +59,11 @@ import AppKit
 
     private func buildLayout() {
         guard let content = window?.contentView else { return }
-        for field in [hostField, portField, pathField] { field.lineBreakMode = .byTruncatingMiddle }
+        for field in [hostField, portField, pathField, ratedWattsField] { field.lineBreakMode = .byTruncatingMiddle }
         hostField.placeholderString = "127.0.0.1"
         portField.placeholderString = "3493"
+        ratedWattsField.placeholderString = "Вт; пусто — мощность неизвестна"
+        ratedWattsField.setAccessibilityIdentifier("ratedWatts")
         upsBox.placeholderString = "имя ИБП в ups.conf"
         upsBox.completes = true
         pathField.placeholderString = "/opt/homebrew/bin/upsc"
@@ -86,6 +90,7 @@ import AppKit
             [label("Сервер NUT:"), hostField],
             [label("Порт:"), portField],
             [label("Имя ИБП:"), upsRow],
+            [label("Номинальная мощность, Вт:"), ratedWattsField],
             [NSGridCell.emptyContentView, manualPath],
             [label("upsc:"), pathRow],
             [NSGridCell.emptyContentView, upscLabel],
@@ -123,7 +128,8 @@ import AppKit
 
     private func draft() -> Settings? {
         switch controller.draft(upsName: upsBox.stringValue, host: hostField.stringValue,
-                                port: portField.stringValue, upscPath: userPath) {
+                                port: portField.stringValue, upscPath: userPath,
+                                ratedWatts: ratedWattsField.stringValue) {
         case .success(let settings): return settings
         case .failure(let failure): show(failure); return nil
         }

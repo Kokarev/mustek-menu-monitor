@@ -178,6 +178,27 @@ final class FakeExecutor: @unchecked Sendable {
             .split(separator: "\n").dropFirst().map { $0.split(separator: ",", omittingEmptySubsequences: false)[1] }
         XCTAssertEqual(events, ["OB", "CFG"])
     }
+    func testRatedPowerFieldValidationSaveAndClear() async throws {
+        let c = controller(current: Settings(upsName: "mustek", ratedWatts: 400))
+        func powerDraft(_ text: String) -> Result<Settings, SettingsCheckFailure> {
+            c.draft(upsName: "mustek", host: "127.0.0.1", port: "3493", upscPath: nil, ratedWatts: text)
+        }
+        XCTAssertEqual(try powerDraft(" 650,5 ").get().ratedWatts, 650.5)
+        XCTAssertNil(try powerDraft("").get().ratedWatts)
+        for text in ["0", "-1", "100001"] {
+            XCTAssertEqual(powerDraft(text), .failure(.invalid([.ratedWattsOutOfRange])))
+        }
+        for text in ["nan", "inf", "not-a-number"] {
+            XCTAssertEqual(powerDraft(text), .failure(.invalid([.ratedWattsNotFinite])))
+        }
+        fake.answers["mustek@127.0.0.1:3493"] = .output(sampleOL)
+        _ = try await c.save(try powerDraft("600").get()).get()
+        XCTAssertEqual(SettingsStore(defaults: backend).load().settings.ratedWatts, 600)
+        XCTAssertEqual(applied.last?.ratedWatts, 600)
+        _ = try await c.save(try powerDraft("").get()).get()
+        XCTAssertNil(SettingsStore(defaults: backend).load().settings.ratedWatts)
+        XCTAssertNil(applied.last?.ratedWatts)
+    }
 }
 
 final class AppIdentityTests: XCTestCase {

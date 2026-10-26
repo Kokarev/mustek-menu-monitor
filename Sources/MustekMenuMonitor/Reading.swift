@@ -17,9 +17,11 @@ struct Reading {
     var online: Bool { flags.contains("OL") }
     var onBattery: Bool { flags.contains("OB") }
     var lowBattery: Bool { flags.contains("LB") }
-    var estimatedWatts: Double? {
-        guard let load, (0...100).contains(load) else { return nil }
-        return 400 * load / 100
+    /// Estimate only when a valid configured rating and load are both known.
+    func estimatedWatts(ratedWatts: Double?) -> Double? {
+        guard let ratedWatts, ratedWatts.isFinite, Settings.ratedWattsRange.contains(ratedWatts),
+              let load, load.isFinite, (0...100).contains(load) else { return nil }
+        return ratedWatts * load / 100
     }
 
     /// Values without which a `upsc` response does not count as a successful update.

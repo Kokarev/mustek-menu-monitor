@@ -83,7 +83,8 @@ import XCTest
         let now = Date()
         let reading = try XCTUnwrap(Reading.parse(sample(load: 6).replacingOccurrences(of: "230.0", with: "228.9"), at: now))
         return MonitorSnapshot(link: .ok, reading: reading, lastSuccess: now, todayWh: 1, monthWh: 1,
-                               currentOutage: nil, lastOutage: nil, now: now)
+                               currentOutage: nil, lastOutage: nil, now: now, ratedWatts: 400,
+                               hasTodayEnergy: true, hasMonthEnergy: true)
     }
 
     /// Writes one PNG per appearance into MUSTEK_RENDER_DIR, when set.
