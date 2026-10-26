@@ -1,119 +1,111 @@
-# MUSTEK Menu Monitor
+# MUSTEK Menu Monitor v0.1.4
 
-A native macOS menu bar application that reads UPS measurements through
-Network UPS Tools (NUT). Version 0.1.3 adds an exclusive process lock to prevent
-two copies from appending to the same history.
+A lightweight native macOS menu bar UPS monitor powered by Network UPS Tools
+(NUT). It reads an existing NUT server through the separately installed `upsc`
+client. The interface is currently in Russian.
 
-This is a locally prepared source candidate licensed under the [MIT License](LICENSE).
-Publication remains on hold pending separate PUBLIC-01B owner approval.
-
-## Author
-
-Pavel Kokarev, CEO, Alma-Soft.
-
-## License
-
-MIT License. Copyright (c) 2026 Pavel Kokarev.
-See [LICENSE](LICENSE) for the full terms and the
-[license decision](docs/LICENSE-OPTIONS.md) for publication status.
+**v0.1.4 is a local release candidate. Publication, ZIP distribution and a
+GitHub Release remain on hold pending separate owner approval.**
 
 ## Features
 
-- Mains and battery status, voltage, load, temperature and NUT connection state.
-- Estimated output power and daily/monthly energy totals.
-- CSV measurement history and power outage transitions.
-- Five-second background polling; stale readings are hidden after 15 seconds.
-- One instance per user data directory, enforced with `flock(2)`.
+- Settings window for NUT server, port, UPS name, optional manual `upsc` path
+  and optional nominal UPS output power in watts.
+- UPS discovery, connection check and save/apply after a successful check.
+  First launch opens Settings when no UPS name is saved.
+- Automatic `upsc` lookup at standard Homebrew/MacPorts locations and a
+  diagnostic version check. An unusable manual path is reported, not replaced.
+- OL/OB/LB status, input/output voltage, frequency, load, temperature and link
+  diagnostics. Polling runs every five seconds; stale data is hidden.
+- Battery voltage, charge and runtime in seconds when supplied by NUT.
+  Missing battery values display **«Нет данных»**, not invented values or zero.
+- Approximate power and daily/monthly energy based on configured nominal power.
+- Append-only measurement CSV and outage event history; switching UPS closes
+  observation of the previous UPS with a configuration-change event.
+- Per-data-directory single-instance locking. A separate compile-time QA build
+  has its own application identity, settings and data, plus visible QA labels.
 
-The application only invokes `upsc`. It does not configure NUT, access USB
-directly, issue UPS control commands, or shut down the computer.
+The monitor does not configure NUT, access USB directly, issue UPS control
+commands, or shut down the computer. There is no automatic updater or installer.
 
-## Requirements and compatibility
+## Requirements
 
-- macOS 13 or later is the declared deployment target.
-- Swift 5.9 or later and the macOS SDK (Xcode Command Line Tools or Xcode).
-- A graphical macOS user session for the menu UI and AppKit tests.
-- Separately installed NUT, including an executable `upsc` and a working `upsd`.
-- `/usr/bin/python3` for the lock subprocess tests, plus zsh, `plutil` and
-  `codesign` for the bundle build.
+- **Apple Silicon (arm64)** for the prepared app build; no Intel/universal ZIP
+  is provided by these build scripts.
+- **macOS 13 or later** is the deployment target. Validation so far used macOS
+  26.7.1 on Apple Silicon; the minimum OS has not been separately validated.
+- A graphical macOS user session.
+- Independently installed NUT `upsc` and an accessible, already configured `upsd`.
+  NUT 2.8.5 was used during validation; compatibility with other versions and
+  models depends on the variables exposed by their drivers.
 
-The preparation build was checked on Apple Silicon with macOS 26.7.1 and Apple
-Swift 6.4. Intel and the macOS 13 minimum have not been separately validated.
-The original deployment used NUT 2.8.5 with `nutdrv_qx`; compatibility with other
-NUT versions and UPS models depends on the variables they expose.
-Required variables are `ups.status`, numeric `input.voltage` and numeric
-`ups.load`. Additional measurements are optional.
+Required variables: `ups.status`, numeric `input.voltage`, numeric `ups.load`.
+Battery measurements, output voltage, frequency and temperature are optional.
+Source builds additionally need Swift 5.9+, the macOS SDK, zsh, `plutil`, `lipo`
+and `codesign`. Lock subprocess tests require `/usr/bin/python3`. There are no
+remote Swift package dependencies. See [build instructions](docs/BUILD.md).
 
-## Build and test
+## Install and configure
 
-From this directory:
+See [INSTALL.md](docs/INSTALL.md) for installation from an approved ZIP, first
+launch, login startup, updates and rollback. No v0.1.4 ZIP is published by this
+preparation step. NUT is not bundled and must be managed independently.
 
-```sh
-swift test
-./build.sh
-codesign --verify --deep --strict dist/MustekMenuMonitor.app
-```
+In **«Настройки…»**, enter the server, port and UPS name; discover names with
+**«Найти»** if needed. Use **«Проверить»** to check and **«Сохранить»** to persist
+and apply a working configuration. No source edits or environment variables
+are needed. Saved settings do not change the NUT server configuration.
 
-There are no remote Swift packages to fetch. The app bundle is written to
-`dist/MustekMenuMonitor.app`; generated files are ignored by Git. The signature
-is ad hoc for local use, with no Developer ID signature or notarization.
-These steps build and test; they do not install or launch the app.
+## Measurements and limits
 
-The live NUT test is opt-in and skipped by default. No live readings or render
-artifacts belong in the repository. See [build details](docs/BUILD.md).
+Estimated power is `ratedWatts * load_percent / 100`. Enter the nominal UPS
+output power in watts in Settings, or leave it empty when unknown. Percentage
+load may not correspond to true watts; this is an approximate UPS output-energy
+estimate, not a wall-energy meter, and excludes UPS conversion losses.
 
-## Configure and install
+Without a nominal power value, new `estimated_W` and `delta_Wh` fields are
+empty. A genuine zero load with a known rating records zero watts. The first
+point after a gap or rating change has no energy interval. Changing the rating
+breaks integration without rewriting history; recorded Wh remain visible.
 
-Before building for your UPS, edit `Upsc.path` and `Upsc.target` in
-`Sources/MustekMenuMonitor/Upsc.swift`. The target `demo-ups@127.0.0.1:3493`
-is a demonstration value. The default executable path is Homebrew's Apple
-Silicon path, `/opt/homebrew/opt/nut/bin/upsc`. Intel or other installations may
-use another path. There is no settings UI or environment override in 0.1.3.
+Battery voltage, charge and runtime depend on NUT and its driver. Zero and
+absence are distinct. The app does not infer charge/runtime from voltage or
+calculate battery age, health, remaining service life or a replacement date.
 
-Battery voltage, charge and remaining runtime are displayed only when reported
-by NUT (`battery.voltage`, `battery.charge`, `battery.runtime` in seconds).
-Missing values are shown as "Нет данных" (No data), with zero kept distinct from
-absence. There is no built-in battery profile, installation date, nominal
-capacity, replacement schedule or battery-life model. Tests use synthetic data;
-this source is not a byte-identical copy of an existing installed build.
+Missing samples and downtime are not backfilled. Outage duration after a gap
+may be a lower bound. CSV files have no rotation and are read at startup;
+write failures have no dedicated UI error. Off-screen tests do not replace
+GUI checks on every supported OS.
 
-Follow [installation and optional login startup](docs/INSTALL.md). NUT must
-already be configured independently; no user NUT configurations are included.
+## Data and identities
 
-## Data and limitations
+Production version **0.1.4**:
 
-The interface is currently in Russian. Data is stored under
-`~/Library/Application Support/MustekMenuMonitor/`:
+- Bundle ID: `local.mustek.menumanager`; display name: **MUSTEK Menu Monitor**.
+- Data: `~/Library/Application Support/MustekMenuMonitor/`.
+- Settings: standard UserDefaults for the production application domain.
 
-- `history.csv`: timestamp, status, input/output voltage, load, estimated watts,
-  energy increment and battery voltage.
-- `power_events.csv`: outage start/end and battery voltage statistics; created
-  when a transition is recorded.
-- `.lock`: informational PID; the live kernel lock determines ownership.
+QA version **0.1.4** (developer use only):
 
-Set the UPS nominal output power in watts in Settings. Estimated power is
-`ratedWatts * load_percent / 100`. With no rating, new power and energy fields
-are left empty; historical Wh remain visible. Changing the rating breaks the
-integration chain without rewriting history. A configured zero load records
-zero watts. Load percentage may not represent true watts; energy is not a utility meter
-reading and excludes UPS conversion losses. Charge and remaining runtime are NUT-reported values; this app does not derive
-them from voltage or estimate battery age, health or a replacement date.
-Missing samples and downtime are not backfilled. After a monitoring gap, outage
-duration can be a lower bound. CSV files have no rotation and are read into
-memory at startup; write failures are not surfaced as a dedicated UI error.
+- Bundle ID: `local.mustek.menumanager.qa`; display name: **MUSTEK QA**.
+- Data: `~/Library/Application Support/MustekMenuMonitor-QA/`.
+- Settings suite: `local.mustek.menumanager.qa.settings`; compiled with `MUSTEK_QA`.
 
-The lock is released by the kernel after normal exit or SIGKILL; a leftover
-lock file is harmless. Older versions without the lock must not run alongside
-0.1.3. The optional LaunchAgent uses **KeepAlive=false**: it starts at login,
-but neither quitting nor a crash causes automatic restart. Manual restart is
-described in the installation guide.
+Each data directory contains `history.csv`, `power_events.csv`, the
+`open_outage_ups.txt` ownership sidecar when an outage is open, and `.lock`.
+The measurement CSV retains its eight-column schema. Preserve the entire
+production data directory and saved settings when updating. Do not delete a
+live lock file. The kernel releases its lock after exit or crash.
 
-Off-screen rendering tests approximate the menu background; they do not
-replace testing the actual menu on every supported macOS version. No binary
-release, automatic updater, NUT setup tool or UPS shutdown policy is provided.
+Login startup is optional and separately configured with a LaunchAgent.
+**KeepAlive=false** means no automatic restart after quit/crash. There is no
+settings-window switch that installs or changes a LaunchAgent.
 
-## Dependencies and publication
+## Author and license
 
-See [dependency inventory](docs/DEPENDENCIES.md) and
-[preparation verification](docs/PREPARATION.md). No NUT executable, source,
-driver, private configuration, measurement log or backup is distributed here.
+Pavel Kokarev, CEO, Alma-Soft.
+
+[MIT License](LICENSE). Copyright (c) 2026 Pavel Kokarev.
+See [release notes](RELEASE_NOTES.md) and [dependency inventory](docs/DEPENDENCIES.md).
+NUT, its drivers and its licenses are separate; no NUT binary, configuration,
+measurement history or backup is included in this source tree.

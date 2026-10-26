@@ -2,8 +2,8 @@
 
 ## Included source
 
-The package contains eight application Swift files, three XCTest files, its
-package manifest and a local bundle build script. No vendored libraries,
+The package contains application Swift sources, XCTest files, its package
+manifest and local production/QA bundle build scripts. No vendored libraries,
 third-party packages, copied license notices or binary assets were found in
 the supplied source tree. The supplied project originally had no LICENSE file;
 the owner has since approved MIT with Copyright (c) 2026 Pavel Kokarev, and the
@@ -16,7 +16,7 @@ standard text is now included in [LICENSE](../LICENSE).
 | Swift / Swift Package Manager | Compile and package | No |
 | macOS Foundation and AppKit | Files, process execution and UI | No |
 | XCTest | Test suite | No |
-| zsh, plutil, codesign | Local app bundle build | No |
+| zsh, plutil, lipo, codesign | Local app bundle build | No |
 | Python 3 with fcntl | Temporary subprocess lock tests | No |
 | macOS flock / POSIX APIs | Single-instance lock | System APIs only |
 

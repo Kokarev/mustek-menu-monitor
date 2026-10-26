@@ -1,4 +1,8 @@
-# PUBLIC-01A local preparation
+# Historical PUBLIC-01A local preparation (v0.1.3)
+
+This is an archived preparation record, not the v0.1.4 installation guide.
+See README.md and RELEASE_NOTES.md for current behavior. Statements below
+describe the earlier v0.1.3 preparation stage.
 
 Status: local source preparation completed. Publication remains on strict hold.
 The owner has approved MIT with Copyright (c) 2026 Pavel Kokarev; the standard

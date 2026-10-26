@@ -13,5 +13,6 @@ text. This decision supersedes the earlier pending license options.
 NUT remains a separately installed dependency with its own licenses; see
 [DEPENDENCIES.md](DEPENDENCIES.md).
 
-License approval does not authorize publication. PUBLIC-01B remains on HOLD:
-no remote repository creation, push or GitHub Release without separate GO.
+License approval does not authorize a new release publication. v0.1.4
+publication remains on strict HOLD: no push, ZIP distribution or GitHub Release
+without separate GO.
