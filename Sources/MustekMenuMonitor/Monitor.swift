@@ -63,6 +63,8 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     private(set) var sampleCount: Int = 0
     /// Outage in progress (OB seen, no OL since), restored from power_events.csv after a restart.
     private(set) var currentOutage: Outage?
+    /// NUT target the open outage was observed on; nil when unknown.
+    private(set) var outageOwner: String?
     private(set) var lastOutage: Outage?
     /// Called on the main actor after any visible state change.
     var onChange: (() -> Void)?
@@ -105,6 +107,8 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         self.historyDirectory = directory
         events = PowerEventLog(url: directory.appendingPathComponent("power_events.csv"))
         (lastOutage, currentOutage) = events.load()
+        // Checked against the connection on the first valid reading (see trackPower).
+        outageOwner = currentOutage == nil ? nil : events.owner()
         // History is read once; afterwards totals are kept in memory and only appended to.
         loadHistory()
     }
@@ -125,6 +129,8 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         self.settings = settings
         let next = UpscConnection(settings)
         guard next != connection else { return }
+        // Another UPS (or none) must never close this UPS's outage.
+        if currentOutage != nil, outageOwner != next?.target { interruptOutage(at: Date()) }
         connection = next
         generation += 1
         // The in-flight poll belongs to the old generation; its result will be discarded.
@@ -201,10 +207,15 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
 
     /// Records OL → OB and OB → OL transitions; only valid readings reach here.
     private func trackPower(_ r: Reading) {
+        // An outage restored from disk for a different (or unknown) UPS is not continued:
+        // this reading cannot confirm anything about it.
+        if currentOutage != nil, outageOwner != connection?.target { interruptOutage(at: r.timestamp) }
         if r.onBattery {
             if currentOutage == nil {
                 currentOutage = Outage(start: r.timestamp)
                 events.appendStart(r)
+                outageOwner = connection?.target
+                events.setOwner(outageOwner)
             }
             currentOutage?.record(voltage: r.batteryVoltage, at: r.timestamp)
         } else if r.online, var outage = currentOutage {
@@ -218,7 +229,18 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
             events.appendEnd(r, outage: outage)
             lastOutage = outage
             currentOutage = nil
+            outageOwner = nil
+            events.setOwner(nil)
         }
+    }
+
+    /// Ends observation of the open outage with CFG; it is not shown as the last outage.
+    private func interruptOutage(at date: Date) {
+        guard let outage = currentOutage else { return }
+        events.appendInterrupted(outage, at: date)
+        currentOutage = nil
+        outageOwner = nil
+        events.setOwner(nil)
     }
 
     /// Any failure breaks the integration chain, so a gap is never bridged with estimated energy.

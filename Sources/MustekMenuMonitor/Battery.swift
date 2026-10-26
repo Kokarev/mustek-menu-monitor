@@ -55,7 +55,8 @@ struct Outage: Equatable {
     }
 }
 
-/// Append-only log of OL → OB and OB → OL transitions (`power_events.csv`).
+/// Append-only log of OL → OB and OB → OL transitions, plus CFG when observation of an
+/// open outage stops (`power_events.csv`).
 /// Kept apart from history.csv so that file's format stays unchanged.
 struct PowerEventLog {
     static let header = "timestamp,event,status,battery_V,duration_s,start_battery_V,last_ob_battery_V,min_battery_V,drop_V_per_h\n"
@@ -72,6 +73,31 @@ struct PowerEventLog {
         append([iso.string(from: r.timestamp), "OL", r.status, text(r.batteryVoltage),
                 String(Int(outage.duration(now: r.timestamp).rounded())), text(outage.startVoltage),
                 text(outage.lastVoltage), text(outage.minVoltage), text(outage.dropRatePerHour)])
+    }
+
+    /// Observation of an open outage stopped (UPS changed, or its owner is unknown).
+    /// Not a power return: no status and no duration, only the voltages seen so far.
+    func appendInterrupted(_ outage: Outage, at date: Date) {
+        append([iso.string(from: date), "CFG", "", "", "", text(outage.startVoltage),
+                text(outage.lastVoltage), text(outage.minVoltage), ""])
+    }
+
+    /// Sidecar holding the NUT target that owns the open outage; the CSV columns stay unchanged.
+    var ownerURL: URL { url.deletingLastPathComponent().appendingPathComponent("open_outage_ups.txt") }
+
+    /// Owner of the open outage, or nil when unknown (also for history from before 0.1.4).
+    func owner() -> String? {
+        guard let text = try? String(contentsOf: ownerURL, encoding: .utf8) else { return nil }
+        let target = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return target.isEmpty ? nil : target
+    }
+
+    func setOwner(_ target: String?) {
+        if let target {
+            try? (target + "\n").write(to: ownerURL, atomically: true, encoding: .utf8)
+        } else {
+            try? FileManager.default.removeItem(at: ownerURL)
+        }
     }
 
     private func text(_ value: Double?) -> String { value.map { String($0) } ?? "" }
@@ -112,6 +138,9 @@ struct PowerEventLog {
                 outage.minVoltage = Double(parts[7]) ?? outage.minVoltage
                 outage.loggedDropRate = Double(parts[8])
                 last = outage
+                open = nil
+            case "CFG":
+                // Observation stopped without a confirmed return; it neither stays open nor becomes the last outage.
                 open = nil
             default:
                 continue
