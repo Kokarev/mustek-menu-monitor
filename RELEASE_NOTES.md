@@ -16,6 +16,8 @@ on strict hold pending separate approval. Final local candidate prepared in M10.
   corrected in several settings and error messages.
 - The upsc path and version line in Settings now wraps inside the window; in
   Ukrainian and Russian it previously ran past the window edge (U-1).
+- Release and QA builds strip the debug map, so the executable no longer
+  contains absolute build paths; the build fails if any remain (P-1).
 
 - Native settings window: server/port, UPS name discovery, connection check,
   save/apply, optional `upsc` path and nominal UPS output power. Initial startup

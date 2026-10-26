@@ -31,6 +31,16 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 PLIST
 plutil -lint "$APP/Contents/Info.plist"
 [[ "$(lipo -archs "$APP/Contents/MacOS/MustekMenuMonitor")" == "arm64" ]]
+# Drop the debug map: it records absolute build paths, including the home directory.
+BIN="$APP/Contents/MacOS/MustekMenuMonitor"
+strip -S "$BIN"
+check_no_build_paths() {
+    if grep -a -q -F -e "$PWD" -e "$HOME" -e ".build/" "$BIN"; then
+        echo "FAIL: build paths remain in $BIN" >&2; exit 1
+    fi
+}
+check_no_build_paths
 codesign --force --sign - "$APP"
 codesign --verify --deep --strict "$APP"
+check_no_build_paths
 echo "Created: $APP"
