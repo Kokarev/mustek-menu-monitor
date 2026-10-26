@@ -48,7 +48,7 @@
 "not recorded" = "не зафиксировано";
 " (ongoing)" = " (идёт)";
 "Estimate: load × %@ W / 100; not a mains meter" = "Оценка: нагрузка × %@ Вт / 100; не счётчик сети";
-"Nominal power not configured; new Wh are not calculated" = "Номинальная мощность не настроена; новые Wh не рассчитываются";
+"Nominal power not configured; new Wh are not calculated" = "Номинальная мощность не настроена; новые Вт·ч не рассчитываются";
 "V" = "В";
 "W" = "Вт";
 "Hz" = "Гц";
@@ -93,7 +93,7 @@
 "Enter the UPS name." = "Укажите имя ИБП.";
 "upsc not found. Install NUT (brew install nut) or specify its path manually." = "upsc не найден. Установите NUT (brew install nut) или укажите путь вручную.";
 "Cannot connect: %@." = "Нет связи: %@.";
-"NUT response lacks ups.status, input.voltage or ups.load." = "Ответ NUT не содержит ups.status, input.voltage и ups.load.";
+"NUT response lacks ups.status, input.voltage or ups.load." = "Ответ NUT не содержит ups.status, input.voltage или ups.load.";
 "Could not save settings." = "Не удалось сохранить настройки.";
 "UPS name: use only Latin letters, digits, _, . and -." = "Имя ИБП: только латинские буквы, цифры, «_», «.» и «-».";
 "UPS name cannot start with -." = "Имя ИБП не может начинаться с «-».";
@@ -113,7 +113,7 @@
 "upsc error" = "ошибка upsc";
 "upsc not found" = "upsc не найден";
 "selected upsc unavailable" = "указанный upsc недоступен";
-"upsc could not start" = "upsc не запускается";
+"upsc could not start" = "ошибка запуска upsc";
 "timeout" = "тайм-аут";
 "Another instance is running; exiting." = "Другой экземпляр уже запущен; завершение.";
 "Instance lock unavailable (%@); exiting." = "Блокировка экземпляра недоступна (%@); завершение.";
