@@ -1,7 +1,8 @@
 # Release notes — v0.1.4
 
-Status: local candidate; publication, release tagging and ZIP distribution are
-on strict hold pending separate approval. Final local candidate prepared in M10.
+Released 2026-10-26: Apple Silicon (arm64) app for macOS 13+, ad hoc signed
+(not Developer ID signed or notarized). Download it from
+[GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases).
 
 ## Changes from v0.1.3
 
@@ -10,8 +11,8 @@ on strict hold pending separate approval. Final local candidate prepared in M10.
   Display formatting follows the system locale; NUT identifiers, CSV formats,
   measurement history and calculations are unchanged. Four-language GUI
   acceptance (en, uk, de, ru, macOS system language, English fallback) was
-  completed by the owner in M10.
-- M10 fixes: the output-voltage row was labelled with the Quit text in
+  checked manually before release.
+- Fixes from release testing: the output-voltage row was labelled with the Quit text in
   English, Ukrainian and German (now Output); Ukrainian and Russian wording
   corrected in several settings and error messages.
 - The upsc path and version line in Settings now wraps inside the window; in

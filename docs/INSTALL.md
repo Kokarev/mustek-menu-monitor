@@ -1,9 +1,8 @@
 # Installing and updating v0.1.4 (Apple Silicon)
 
-These are instructions for a future approved deployment. M7 prepares local
-metadata and documentation only: it does not publish a ZIP, install, launch or
-replace an app. Do not apply these instructions to an existing deployment
-without its owner's authorization.
+These instructions cover installing the v0.1.4 release ZIP, first launch,
+updates and rollback. Do not apply them to an existing deployment without its
+owner's authorization.
 
 ## Prerequisites
 
@@ -16,12 +15,12 @@ This app does not install/configure NUT, change driver services or use UPS
 control credentials. Required telemetry is `ups.status`, `input.voltage` and
 `ups.load`; other displayed measurements depend on the driver.
 
-## Install from an approved ZIP
+## Install from the release ZIP
 
-1. Once an approved v0.1.4 ZIP is available, obtain it from the owner's announced
-   distribution location. No release download URL is available from this M7 step.
-2. Compare the ZIP checksum with the checksum supplied for that exact artifact,
-   when provided. Extract it in Finder and locate `MustekMenuMonitor.app`.
+1. Download `MustekMenuMonitor-v0.1.4-macos-arm64.zip` and `SHA256SUMS` from the
+   v0.1.4 release on [GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases).
+2. Run `shasum -a 256 MustekMenuMonitor-v0.1.4-macos-arm64.zip` and compare the
+   result with the ZIP line in `SHA256SUMS`. Extract it in Finder and locate `MustekMenuMonitor.app`.
 3. Ensure an older production copy is not running. For an existing installation,
    follow the backup/update procedure below before replacing anything.
 4. For a fresh installation, copy the app to `~/Applications/`. The expected
@@ -123,7 +122,7 @@ The app does not install a LaunchAgent. The inactive template
 an actual absolute home path; launchd does not expand `~` or shell variables.
 Its program path expects the production app under `~/Applications/`. Loading
 or changing the template is a separate deployment action, not a step performed
-by the app or M7. Preserve a working LaunchAgent during updates.
+by the app. Preserve a working LaunchAgent during updates.
 
 `RunAtLoad=true` launches the agent when loaded, including login.
 **KeepAlive=false** means quitting or crashing does not trigger an automatic

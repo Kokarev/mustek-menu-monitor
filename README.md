@@ -8,8 +8,8 @@ Settings. English is the base and fallback language when no supported language
 is preferred. There is no in-app language selector. Displayed numbers and
 dates use the system locale; NUT codes and CSV serialization stay unchanged.
 
-**v0.1.4 is a local release candidate. Publication, ZIP distribution and a
-GitHub Release remain on hold pending separate owner approval.**
+**v0.1.4** is available as an Apple Silicon ZIP from
+[GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases).
 
 ## Features
 
@@ -51,9 +51,8 @@ remote Swift package dependencies. See [build instructions](docs/BUILD.md).
 
 ## Install and configure
 
-See [INSTALL.md](docs/INSTALL.md) for installation from an approved ZIP, first
-launch, login startup, updates and rollback. No v0.1.4 ZIP is published by this
-preparation step. NUT is not bundled and must be managed independently.
+See [INSTALL.md](docs/INSTALL.md) for installation from the release ZIP, first
+launch, login startup, updates and rollback. NUT is not bundled and must be managed independently.
 
 In **Settings…**, enter the server, port and UPS name; discover names with
 **Find** if needed. Use **Check** to check and **Save** to persist
