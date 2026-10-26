@@ -27,20 +27,17 @@ enum LinkState: Equatable {
     }
 }
 
-/// What one poll runs: upsc executable and NUT target.
+/// What one poll runs: NUT target, and the user's upsc path (nil means located automatically).
+/// The executable itself is located on every poll, so installing NUT later needs no restart.
 struct UpscConnection: Equatable {
-    let path: String
+    let userPath: String?
     let target: String
 
-    /// nil when the settings do not yield a usable target.
+    /// nil when the settings do not yield a usable target. An unusable upsc path is not a
+    /// configuration gap: it is reported by the poll.
     init?(_ settings: Settings) {
         guard case .success(let target) = settings.nutTarget() else { return nil }
-        if let path = settings.upscPath {
-            guard path.hasPrefix("/"), !path.contains("\0") else { return nil }
-            self.path = path
-        } else {
-            self.path = Upsc.fallbackPath
-        }
+        userPath = settings.upscPath
         self.target = target
     }
 }
@@ -80,6 +77,7 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     private let historyDirectory: URL
     private let events: PowerEventLog
     private let runUpsc: UpscRunner
+    private let locator: UpscLocator
 
     var historyURL: URL {
         try? fm.createDirectory(at: historyDirectory, withIntermediateDirectories: true)
@@ -96,12 +94,13 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
     }
 
     /// Default settings have no UPS name, so a monitor built without them stays not configured.
-    init(settings: Settings = Settings(), historyDirectory: URL? = nil,
+    init(settings: Settings = Settings(), historyDirectory: URL? = nil, locator: UpscLocator = UpscLocator(),
          runUpsc: @escaping UpscRunner = { await Upsc.run(path: $0, target: $1) }) {
         self.settings = settings
         connection = UpscConnection(settings)
         link = connection == nil ? .notConfigured : .waiting
         self.runUpsc = runUpsc
+        self.locator = locator
         let directory = historyDirectory ?? Self.defaultDirectory
         self.historyDirectory = directory
         events = PowerEventLog(url: directory.appendingPathComponent("power_events.csv"))
@@ -148,14 +147,18 @@ typealias UpscRunner = @Sendable (_ path: String, _ target: String) async -> Ups
         guard let connection else { return nil }
         // A slow upsc must not stack up overlapping polls.
         guard !isPolling else { return nil }
-        guard fm.isExecutableFile(atPath: connection.path) else {
-            fail(.noResponse("upsc не найден")); return nil
+        let path: String
+        switch locator.locate(userPath: connection.userPath) {
+        case .success(let found): path = found
+        case .failure(.notFound): fail(.noResponse("upsc не найден")); return nil
+        // The user's choice is never replaced by another upsc behind their back.
+        case .failure(.userPathUnusable): fail(.noResponse("указанный upsc недоступен")); return nil
         }
         isPolling = true
         let started = generation
         let run = runUpsc
         return Task {
-            let outcome = await run(connection.path, connection.target)
+            let outcome = await run(path, connection.target)
             // A late answer for a replaced connection must not touch state or history.
             guard started == generation else { return }
             handle(outcome, at: Date())

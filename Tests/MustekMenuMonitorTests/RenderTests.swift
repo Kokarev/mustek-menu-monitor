@@ -58,7 +58,8 @@ import XCTest
         guard let target = ProcessInfo.processInfo.environment["MUSTEK_LIVE_UPSC"], target.contains("@") else {
             throw XCTSkip("set MUSTEK_LIVE_UPSC=<ups@host:port> to query a NUT server")
         }
-        let outcome = await Upsc.run(path: Upsc.fallbackPath, target: target)
+        let path = try UpscLocator().locate(userPath: nil).get()
+        let outcome = await Upsc.run(path: path, target: target)
         guard case .output(let raw) = outcome else { return XCTFail("upsc failed: \(outcome)") }
         print("[live] raw upsc output:\n\(raw)")
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("MustekLive-\(UUID().uuidString)")

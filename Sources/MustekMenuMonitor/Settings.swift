@@ -109,13 +109,7 @@ extension Settings {
         guard let upscPath else { return [] }
         guard upscPath.hasPrefix("/"), !upscPath.contains("\0") else { return [.upscPathNotAbsolute] }
         guard checkFileSystem else { return [] }
-        var isDirectory: ObjCBool = false
-        guard fileManager.fileExists(atPath: upscPath, isDirectory: &isDirectory) else { return [.upscPathNotFound] }
-        // A directory also passes isExecutableFile, so it is rejected explicitly.
-        guard !isDirectory.boolValue, fileManager.isExecutableFile(atPath: upscPath) else {
-            return [.upscPathNotExecutable]
-        }
-        return []
+        return UpscLocator.problem(at: upscPath, fileManager: fileManager).map { [$0] } ?? []
     }
 
     private func ratedWattsIssues() -> [SettingsIssue] {

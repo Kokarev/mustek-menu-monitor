@@ -18,19 +18,20 @@ private final class TimeoutFlag: @unchecked Sendable {
 
 /// Read-only access to NUT through the installed `upsc` client.
 enum Upsc {
-    /// TEMPORARY (until automatic discovery, M3): used when Settings.upscPath is nil.
-    /// Homebrew's location on Apple Silicon only.
-    static let fallbackPath = "/opt/homebrew/opt/nut/bin/upsc"
     static let timeout: TimeInterval = 3
 
-    /// Runs upsc on a background queue; the main thread never waits for it.
-    /// `target` is passed as a single argument, never through a shell.
+    /// Queries one UPS. `target` is passed as a single argument, never through a shell.
     static func run(path: String, target: String, timeout: TimeInterval = timeout) async -> UpscOutcome {
+        await execute(path: path, arguments: [target], timeout: timeout)
+    }
+
+    /// Runs upsc on a background queue; the main thread never waits for it.
+    static func execute(path: String, arguments: [String], timeout: TimeInterval = timeout) async -> UpscOutcome {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: path)
-                process.arguments = [target]
+                process.arguments = arguments
                 let output = Pipe()
                 let errors = Pipe()
                 process.standardOutput = output

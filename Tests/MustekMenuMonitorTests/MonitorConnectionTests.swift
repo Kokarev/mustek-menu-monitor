@@ -32,6 +32,7 @@ final class ControlledRunner: @unchecked Sendable {
 @MainActor final class MonitorConnectionTests: XCTestCase {
     private var directory: URL!
     private var tools: URL!
+    private var locator: UpscLocator!
 
     override func setUp() async throws {
         let base = FileManager.default.temporaryDirectory
@@ -39,6 +40,11 @@ final class ControlledRunner: @unchecked Sendable {
         directory = base.appendingPathComponent("data", isDirectory: true)
         tools = base.appendingPathComponent("tools", isDirectory: true)
         try FileManager.default.createDirectory(at: tools, withIntermediateDirectories: true)
+        // Automatic search sees only this placeholder, never the machine's real upsc.
+        let auto = tools.appendingPathComponent("auto-upsc")
+        try "#!/bin/sh\nexit 0\n".write(to: auto, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: auto.path)
+        locator = UpscLocator(candidates: [auto.path])
     }
 
     override func tearDown() async throws {
@@ -96,12 +102,13 @@ final class ControlledRunner: @unchecked Sendable {
     func testConnectionFromSettings() {
         XCTAssertNil(UpscConnection(Settings()))
         XCTAssertNil(UpscConnection(Settings(upsName: "bad name")))
-        XCTAssertNil(UpscConnection(Settings(upsName: "ups", upscPath: "relative/upsc")))
-        XCTAssertEqual(UpscConnection(Settings(upsName: "ups", host: "nut.example.org", port: 3500)),
-                       UpscConnection(Settings(upsName: "ups", host: "nut.example.org", port: 3500, upscPath: Upsc.fallbackPath)))
-        let custom = UpscConnection(Settings(upsName: "ups", upscPath: "/usr/local/bin/upsc"))
-        XCTAssertEqual(custom?.path, "/usr/local/bin/upsc")
-        XCTAssertEqual(custom?.target, "ups@127.0.0.1:3493")
+        // A bad upsc path does not make the UPS "not configured"; the poll reports it.
+        XCTAssertEqual(UpscConnection(Settings(upsName: "ups", upscPath: "relative/upsc"))?.userPath, "relative/upsc")
+        let auto = UpscConnection(Settings(upsName: "ups", host: "nut.example.org", port: 3500))
+        XCTAssertNil(auto?.userPath)
+        XCTAssertEqual(auto?.target, "ups@nut.example.org:3500")
+        XCTAssertNotEqual(auto, UpscConnection(Settings(upsName: "ups", host: "nut.example.org", port: 3500,
+                                                        upscPath: "/usr/local/bin/upsc")))
     }
 
     // MARK: Real process (fake upsc executable)
@@ -109,7 +116,7 @@ final class ControlledRunner: @unchecked Sendable {
     func testPollUsesTargetFromSettingsAsOneArgument() async throws {
         let path = try fakeUpsc()
         let monitor = Monitor(settings: Settings(upsName: "mustek", host: "127.0.0.1", port: 3493, upscPath: path),
-                              historyDirectory: directory)
+                              historyDirectory: directory, locator: locator)
         XCTAssertEqual(monitor.link, .waiting)
         await monitor.poll()?.value
         XCTAssertEqual(calls, ["1", "mustek@127.0.0.1:3493"])
@@ -122,7 +129,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testNotConfiguredNeverRunsUpscOrWritesHistory() async throws {
         let path = try fakeUpsc()
-        let monitor = Monitor(settings: Settings(upscPath: path), historyDirectory: directory)
+        let monitor = Monitor(settings: Settings(upscPath: path), historyDirectory: directory, locator: locator)
         XCTAssertEqual(monitor.link, .notConfigured)
         XCTAssertNil(monitor.poll())
         XCTAssertNil(monitor.poll())
@@ -143,7 +150,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testUnconfiguringStopsPollingAndHistory() async throws {
         let path = try fakeUpsc()
-        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory)
+        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory, locator: locator)
         await monitor.poll()?.value
         XCTAssertEqual(lines("history.csv").count, 2)
         monitor.apply(Settings(upscPath: path))
@@ -156,7 +163,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testUnavailableServerAndUnknownUps() async throws {
         let path = try fakeUpsc(mode: "refused")
-        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory)
+        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory, locator: locator)
         await monitor.poll()?.value
         XCTAssertEqual(monitor.link, .noResponse("upsd недоступен"))
         setMode("unknown")
@@ -167,7 +174,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testRecoversAfterErrorWithSameAndWithNewSettings() async throws {
         let path = try fakeUpsc(mode: "refused")
-        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory)
+        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory, locator: locator)
         await monitor.poll()?.value
         XCTAssertEqual(monitor.link, .noResponse("upsd недоступен"))
         setMode("ok")
@@ -186,9 +193,9 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testMissingUpscExecutable() async {
         let monitor = Monitor(settings: configured(path: tools.appendingPathComponent("absent").path),
-                              historyDirectory: directory)
+                              historyDirectory: directory, locator: locator)
         XCTAssertNil(monitor.poll())
-        XCTAssertEqual(monitor.link, .noResponse("upsc не найден"))
+        XCTAssertEqual(monitor.link, .noResponse("указанный upsc недоступен"))
     }
 
     func testHungUpscIsStillTerminated() async throws {
@@ -207,7 +214,7 @@ final class ControlledRunner: @unchecked Sendable {
     // MARK: Changing settings while running
 
     func testApplyResetsIntegrationPoint() {
-        let monitor = Monitor(settings: configured(), historyDirectory: directory)
+        let monitor = Monitor(settings: configured(), historyDirectory: directory, locator: locator)
         let t0 = Date()
         monitor.handle(.output(sample(load: 6)), at: t0)
         monitor.handle(.output(sample(load: 6)), at: t0.addingTimeInterval(5))
@@ -229,7 +236,7 @@ final class ControlledRunner: @unchecked Sendable {
     }
 
     func testApplyWithSameConnectionKeepsState() {
-        let monitor = Monitor(settings: configured(), historyDirectory: directory)
+        let monitor = Monitor(settings: configured(), historyDirectory: directory, locator: locator)
         monitor.handle(.output(sampleOL), at: Date())
         let generation = monitor.generation
         var settings = configured()
@@ -243,7 +250,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testLateAnswerFromOldUpsIsDiscarded() async {
         let runner = ControlledRunner()
-        let monitor = Monitor(settings: configured("old"), historyDirectory: directory, runUpsc: runner.run)
+        let monitor = Monitor(settings: configured("old"), historyDirectory: directory, locator: locator, runUpsc: runner.run)
         let oldPoll = monitor.poll()
         await waitForPending(runner, count: 1)
 
@@ -270,7 +277,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testLateFailureFromOldUpsIsDiscarded() async {
         let runner = ControlledRunner()
-        let monitor = Monitor(settings: configured("old"), historyDirectory: directory, runUpsc: runner.run)
+        let monitor = Monitor(settings: configured("old"), historyDirectory: directory, locator: locator, runUpsc: runner.run)
         let oldPoll = monitor.poll()
         await waitForPending(runner, count: 1)
         monitor.apply(configured("new"))
@@ -288,7 +295,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testLateAnswerAfterUnconfiguringIsDiscarded() async {
         let runner = ControlledRunner()
-        let monitor = Monitor(settings: configured(), historyDirectory: directory, runUpsc: runner.run)
+        let monitor = Monitor(settings: configured(), historyDirectory: directory, locator: locator, runUpsc: runner.run)
         let poll = monitor.poll()
         await waitForPending(runner, count: 1)
         monitor.apply(Settings())
@@ -300,7 +307,7 @@ final class ControlledRunner: @unchecked Sendable {
 
     func testOverlappingPollsAreStillPreventedWithinOneConnection() async {
         let runner = ControlledRunner()
-        let monitor = Monitor(settings: configured(), historyDirectory: directory, runUpsc: runner.run)
+        let monitor = Monitor(settings: configured(), historyDirectory: directory, locator: locator, runUpsc: runner.run)
         let first = monitor.poll()
         await waitForPending(runner, count: 1)
         XCTAssertNil(monitor.poll())
@@ -318,7 +325,7 @@ final class ControlledRunner: @unchecked Sendable {
     func testMonitorDoesNotTouchProductionDefaults() async throws {
         let before = UserDefaults.standard.persistentDomain(forName: SettingsStoreTests.productionDomain) as NSDictionary?
         let path = try fakeUpsc()
-        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory)
+        let monitor = Monitor(settings: configured(path: path), historyDirectory: directory, locator: locator)
         await monitor.poll()?.value
         monitor.apply(configured("other", path: path))
         monitor.apply(Settings())
