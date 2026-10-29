@@ -1,10 +1,10 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 /// Identity checks only: never open the real production/QA data files or write their defaults.
 @MainActor final class AppIdentityIsolationTests: XCTestCase {
     func testExactDefaultDirectoryHasOneApplicationSupportComponent() {
-        #if MUSTEK_QA
+        #if UPSMENUBAR_QA
         let name = "MustekMenuMonitor-QA"
         #else
         let name = "MustekMenuMonitor"
@@ -21,7 +21,7 @@ import XCTest
 
     func testSettingsFactorySelectsTheBuildDomainWithoutWriting() throws {
         let selected = AppIdentity.settingsDefaults()
-        #if MUSTEK_QA
+        #if UPSMENUBAR_QA
         let suite = try XCTUnwrap(AppIdentity.settingsSuite)
         XCTAssertNotEqual(suite, "local.mustek.menumanager")
         XCTAssertNotEqual(suite, "local.mustek.menumanager.qa")

@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 /// Synthetic NUT response for parser and presentation tests; no device capture.
 let sampleOL = """
@@ -245,7 +245,7 @@ func sample(status: String = "OL", input: Double = 230.0, load: Double = 5, batt
         let monitor = Monitor(settings: Settings(ratedWatts: 400), historyDirectory: directory)
         monitor.handle(.output(sampleOL), at: Date())
         let model = MenuModel.make(monitor.snapshot())
-        XCTAssertEqual(model.header, "MUSTEK \(L10n.tr("UPS")) — 🟢 \(L10n.tr("On mains"))")
+        XCTAssertEqual(model.header, "\(L10n.tr("UPS")) — 🟢 \(L10n.tr("On mains"))")
         XCTAssertEqual(value(model, L10n.tr("Input")), Format.value(230, L10n.tr("V"), digits: 1))
         XCTAssertEqual(value(model, L10n.tr("Output")), Format.value(230, L10n.tr("V"), digits: 1))
         XCTAssertEqual(value(model, L10n.tr("Frequency")), Format.value(50, L10n.tr("Hz"), digits: 1))

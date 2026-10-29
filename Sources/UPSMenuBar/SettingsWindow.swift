@@ -26,7 +26,7 @@ import AppKit
         self.controller = controller
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 440),
                               styleMask: [.titled, .closable], backing: .buffered, defer: true)
-        window.title = L10n.tr("MUSTEK Menu Monitor Settings") + (AppIdentity.isQA ? " — QA" : "")
+        window.title = L10n.tr("UPS Menu Bar Settings") + (AppIdentity.isQA ? " — QA" : "")
         window.isReleasedWhenClosed = false
         super.init(window: window)
         window.delegate = self

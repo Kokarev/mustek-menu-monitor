@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 @MainActor final class LocalizationTests: XCTestCase {
     private func catalog(_ language: String) throws -> [String: String] {
@@ -43,7 +43,7 @@ import XCTest
 
     func testVisibleSourceStringsHaveResourcesAndNoHardcodedCyrillic() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        let sources = root.appendingPathComponent("Sources/MustekMenuMonitor")
+        let sources = root.appendingPathComponent("Sources/UPSMenuBar")
         let keys = Set(try catalog("en").keys)
         let lookup = try NSRegularExpression(pattern: #"L10n\.(?:tr|format)\("((?:\\.|[^"\\])*)""#)
         let cyrillic = try NSRegularExpression(pattern: #""[^"\n]*[А-Яа-яЁёІіЇїЄєҐґ][^"\n]*""#)
@@ -54,6 +54,31 @@ import XCTest
             for match in lookup.matches(in: source, range: range) {
                 let key = String(source[Range(match.range(at: 1), in: source)!])
                 XCTAssertTrue(keys.contains(key), "Untranslated UI lookup: \(key)")
+            }
+        }
+    }
+
+    /// v0.2.0 rename: no catalog or visible source string shows the former app name.
+    func testFormerAppNameIsNotShown() throws {
+        let former = ["MUSTEK", "Mustek", "Menu Monitor"]
+        for language in AppLocalization.supported {
+            for (key, value) in try catalog(language) {
+                for name in former {
+                    XCTAssertFalse(key.contains(name) || value.contains(name), "\(language): \(key)")
+                }
+            }
+            XCTAssertTrue(AppLocalization(preferences: [language]).text("UPS Menu Bar Settings").contains("UPS Menu Bar"), language)
+        }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let sources = root.appendingPathComponent("Sources/UPSMenuBar")
+        let literal = try NSRegularExpression(pattern: #""[^"\n]*""#)
+        for url in try FileManager.default.contentsOfDirectory(at: sources, includingPropertiesForKeys: nil) where url.pathExtension == "swift" {
+            let source = try String(contentsOf: url)
+            for match in literal.matches(in: source, range: NSRange(source.startIndex..., in: source)) {
+                let text = String(source[Range(match.range, in: source)!])
+                // The data directory keeps its former name so existing history stays in place.
+                guard !text.hasPrefix("\"MustekMenuMonitor") else { continue }
+                for name in former { XCTAssertFalse(text.contains(name), "\(url.lastPathComponent): \(text)") }
             }
         }
     }
@@ -69,7 +94,7 @@ import XCTest
             XCTAssertNotEqual(localizer.text("Output"), localizer.text("Quit"), language)
         }
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        let source = try String(contentsOf: root.appendingPathComponent("Sources/MustekMenuMonitor/MenuModel.swift"))
+        let source = try String(contentsOf: root.appendingPathComponent("Sources/UPSMenuBar/MenuModel.swift"))
         let outputRow = try XCTUnwrap(source.split(separator: "\n").first { $0.contains("r?.output") })
         XCTAssertTrue(outputRow.contains(#"L10n.tr("Output")"#), String(outputRow))
     }
@@ -110,7 +135,7 @@ import XCTest
     }
 
     func testLocalizationDoesNotChangeIdentitySettingsOrQaMarker() {
-        #if MUSTEK_QA
+        #if UPSMENUBAR_QA
         XCTAssertEqual(AppIdentity.titlePrefix, "QA · ")
         XCTAssertEqual(AppIdentity.dataDirectoryName, "MustekMenuMonitor-QA")
         XCTAssertEqual(AppIdentity.settingsSuite, "local.mustek.menumanager.qa.settings")

@@ -51,7 +51,7 @@ struct MenuModel: Equatable {
         let outage = s.currentOutage ?? s.lastOutage
         return MenuModel(
             statusBarTitle: barTitle(for: r, ratedWatts: s.ratedWatts),
-            header: "MUSTEK \(L10n.tr("UPS")) — \(stateText(link: s.link, reading: r))",
+            header: "\(L10n.tr("UPS")) — \(stateText(link: s.link, reading: r))",
             sections: [
                 MenuSection(title: L10n.tr("Mains"), rows: [
                     MenuRow(label: L10n.tr("Input"), value: Format.value(r?.input, L10n.tr("V"), digits: 1)),

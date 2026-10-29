@@ -1,8 +1,8 @@
-# Installing and updating v0.1.4 (Apple Silicon)
+# Installing and updating v0.2.0 (Apple Silicon)
 
-These instructions cover installing the v0.1.4 release ZIP, first launch,
-updates and rollback. Do not apply them to an existing deployment without its
-owner's authorization.
+These instructions cover installing UPS Menu Bar v0.2.0, first launch, updates
+from MUSTEK Menu Monitor (the name of v0.1.x) and rollback. Do not apply them
+to an existing deployment without its owner's authorization.
 
 ## Prerequisites
 
@@ -17,16 +17,17 @@ control credentials. Required telemetry is `ups.status`, `input.voltage` and
 
 ## Install from the release ZIP
 
-1. Download `MustekMenuMonitor-v0.1.4-macos-arm64.zip` and `SHA256SUMS` from the
-   v0.1.4 release on [GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases).
-2. Run `shasum -a 256 MustekMenuMonitor-v0.1.4-macos-arm64.zip` and compare the
-   result with the ZIP line in `SHA256SUMS`. Extract it in Finder and locate `MustekMenuMonitor.app`.
+1. Download `UPSMenuBar-v0.2.0-macos-arm64.zip` and `SHA256SUMS` from the
+   v0.2.0 release on [GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases)
+   once it is published; until then build the app from source (see [BUILD.md](BUILD.md)).
+2. Run `shasum -a 256 UPSMenuBar-v0.2.0-macos-arm64.zip` and compare the
+   result with the ZIP line in `SHA256SUMS`. Extract it in Finder and locate `UPS Menu Bar.app`.
 3. Ensure an older production copy is not running. For an existing installation,
    follow the backup/update procedure below before replacing anything.
 4. For a fresh installation, copy the app to `~/Applications/`. The expected
-   path for the optional LaunchAgent is `~/Applications/MustekMenuMonitor.app`.
-5. Use Finder Get Info to check version **0.1.4**. The production bundle ID is
-   `local.mustek.menumanager`, with display name **MUSTEK Menu Monitor**.
+   path for the optional LaunchAgent is `~/Applications/UPS Menu Bar.app`.
+5. Use Finder Get Info to check version **0.2.0**. The production bundle ID is
+   `local.mustek.menumanager`, with display name **UPS Menu Bar**.
 
 The local build is ad hoc signed, without Developer ID signing or notarization.
 A downloaded build may be blocked by Gatekeeper. Do not disable Gatekeeper or
@@ -90,13 +91,20 @@ CSV files are still being written is not a consistent stopped-app snapshot.
 2. Copy the complete stopped-app data directory and saved settings to a dated,
    private backup folder. Keep a separate copy of the previous `.app` bundle.
    Do not delete or overwrite measurement CSV while updating.
-3. Replace only the `.app` bundle at the same installation path with the
-   approved v0.1.4 app. Do not replace the Application Support directory,
-   preference domain, LaunchAgent or NUT configuration.
+3. Replace only the `.app` bundle with the approved v0.2.0 app. Do not replace
+   the Application Support directory, preference domain or NUT configuration.
+   From v0.1.x the bundle is renamed: remove `MustekMenuMonitor.app` from the
+   installation folder only after it is backed up, and put `UPS Menu Bar.app` there.
+   Bundle ID, data directory and settings domain are unchanged, so saved settings
+   and history are used as they are.
 4. Launch the new app manually, or start the existing loaded LaunchAgent when
    the app is stopped. Confirm version, target, settings and historical totals.
    If upgrading from v0.1.3, set up the connection in Settings when prompted;
    the old history is retained and is not recalculated.
+5. A LaunchAgent made from the v0.1.x template still points at
+   `MustekMenuMonitor.app/Contents/MacOS/MustekMenuMonitor`. Update its
+   `ProgramArguments` to `UPS Menu Bar.app/Contents/MacOS/UPSMenuBar` (keep the
+   label `local.mustek.menumonitor`) as a separate deployment step, then reload it.
 
 New unknown power/energy intervals are empty CSV fields, not zero. A nominal
 power change breaks integration; old measurements and Wh are left intact.
@@ -104,12 +112,12 @@ UPS connection changes do not mix the open outage of one UPS with another.
 
 ## Return to the previous version
 
-1. Quit v0.1.4 and verify it has exited. Make a separate backup of its current
+1. Quit v0.2.0 and verify it has exited. Make a separate backup of its current
    data/settings first; preserve any measurements added since the update.
 2. Replace only the app bundle with your saved previous `.app`, using the same
-   path. Keep data and NUT unchanged and do not start QA as a rollback substitute.
+   path, and point a LaunchAgent back at it. Keep data and NUT unchanged and do not start QA as a rollback substitute.
 3. Launch the previous app and check its behavior. Older versions may ignore
-   v0.1.4 settings or skip rows whose Wh are empty, and may show older estimates.
+   newer settings or skip rows whose Wh are empty, and may show older estimates.
    The app has no automatic rollback or CSV conversion/merging facility.
 4. If restoring a pre-update data/settings backup is necessary, do so only while
    the app is stopped and retain the newer backup separately. Do not overwrite
@@ -120,7 +128,8 @@ UPS connection changes do not mix the open outage of one UPS with another.
 The app does not install a LaunchAgent. The inactive template
 `examples/local.mustek.menumonitor.plist.in` requires replacing `__HOME__` with
 an actual absolute home path; launchd does not expand `~` or shell variables.
-Its program path expects the production app under `~/Applications/`. Loading
+Its program path expects `UPS Menu Bar.app` under `~/Applications/`; the label
+keeps its v0.1.x name so an existing agent is updated rather than duplicated. Loading
 or changing the template is a separate deployment action, not a step performed
 by the app. Preserve a working LaunchAgent during updates.
 
@@ -131,9 +140,9 @@ manual restart uses `launchctl kickstart gui/<UID>/local.mustek.menumonitor`
 with the actual numeric UID. Do not use `kickstart -k` on a healthy instance or
 delete its live lock. A stale lock file after exit does not hold a kernel lock.
 
-Developer QA uses `MustekMenuMonitorQA.app`, display name **MUSTEK QA**, bundle
+Developer QA uses `UPS Menu Bar QA.app`, display name **UPS Menu Bar QA**, bundle
 ID `local.mustek.menumanager.qa`, data directory
 `~/Library/Application Support/MustekMenuMonitor-QA/` and settings suite
-`local.mustek.menumanager.qa.settings`. Both builds report version 0.1.4;
+`local.mustek.menumanager.qa.settings`. Both builds report version 0.2.0;
 QA is identified by its name, bundle ID and visible QA prefix. Do not install,
 distribute or substitute the QA bundle for the production app.

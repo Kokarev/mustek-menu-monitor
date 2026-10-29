@@ -1,4 +1,4 @@
-/* MUSTEK Menu Monitor — uk */
+/* UPS Menu Bar — uk */
 "Mains" = "Електромережа";
 "Input" = "Вхід";
 "Output" = "Вихід";
@@ -66,7 +66,7 @@
 "Check" = "Перевірити";
 "Save" = "Зберегти";
 "Close" = "Закрити";
-"MUSTEK Menu Monitor Settings" = "Налаштування MUSTEK Menu Monitor";
+"UPS Menu Bar Settings" = "Налаштування UPS Menu Bar";
 "UPS is not configured. Enter the NUT server and UPS name, then click Check or Save." = "ДБЖ ще не налаштовано. Вкажіть сервер NUT та ім’я ДБЖ, потім натисніть «Перевірити» або «Зберегти».";
 "W; leave empty if unknown" = "Вт; порожньо — потужність невідома";
 "UPS name in ups.conf" = "ім’я ДБЖ у ups.conf";

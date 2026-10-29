@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 /// Contrast and off-screen rendering of the menu content in light and dark appearance.
 /// The menu is drawn onto windowBackgroundColor as an approximation of the menu material;
@@ -53,10 +53,10 @@ import XCTest
         try render(MenuModel.make(snapshot), prefix: "noresponse-outage")
     }
 
-    /// Opt-in: MUSTEK_LIVE_UPSC=<ups@host:port> runs the real read-only `upsc` once and renders its values.
+    /// Opt-in: UPSMENUBAR_LIVE_UPSC=<ups@host:port> runs the real read-only `upsc` once and renders its values.
     func testLiveUpscReading() async throws {
-        guard let target = ProcessInfo.processInfo.environment["MUSTEK_LIVE_UPSC"], target.contains("@") else {
-            throw XCTSkip("set MUSTEK_LIVE_UPSC=<ups@host:port> to query a NUT server")
+        guard let target = ProcessInfo.processInfo.environment["UPSMENUBAR_LIVE_UPSC"], target.contains("@") else {
+            throw XCTSkip("set UPSMENUBAR_LIVE_UPSC=<ups@host:port> to query a NUT server")
         }
         let path = try UpscLocator().locate(userPath: nil).get()
         let outcome = await Upsc.run(path: path, target: target)
@@ -87,11 +87,11 @@ import XCTest
                                hasTodayEnergy: true, hasMonthEnergy: true)
     }
 
-    /// Writes one PNG per appearance into MUSTEK_RENDER_DIR, when set.
+    /// Writes one PNG per appearance into UPSMENUBAR_RENDER_DIR, when set.
     /// Each appearance gets its own MenuContent: the views are detached from their menu items
     /// for drawing, because an NSMenuItem resets the origin of the view it holds.
     private func render(_ model: MenuModel, prefix: String) throws {
-        guard let outputPath = ProcessInfo.processInfo.environment["MUSTEK_RENDER_DIR"] else { return }
+        guard let outputPath = ProcessInfo.processInfo.environment["UPSMENUBAR_RENDER_DIR"] else { return }
         let output = URL(fileURLWithPath: outputPath, isDirectory: true)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         for (name, appearanceName) in appearances {

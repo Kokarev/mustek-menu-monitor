@@ -1,4 +1,4 @@
-/* MUSTEK Menu Monitor — en */
+/* UPS Menu Bar — en */
 "Mains" = "Mains";
 "Input" = "Input";
 "Output" = "Output";
@@ -66,7 +66,7 @@
 "Check" = "Check";
 "Save" = "Save";
 "Close" = "Close";
-"MUSTEK Menu Monitor Settings" = "MUSTEK Menu Monitor Settings";
+"UPS Menu Bar Settings" = "UPS Menu Bar Settings";
 "UPS is not configured. Enter the NUT server and UPS name, then click Check or Save." = "UPS is not configured. Enter the NUT server and UPS name, then click Check or Save.";
 "W; leave empty if unknown" = "W; leave empty if unknown";
 "UPS name in ups.conf" = "UPS name in ups.conf";

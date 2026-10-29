@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 @MainActor final class BatteryTelemetryTests: XCTestCase {
     private var directory: URL!

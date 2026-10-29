@@ -1,4 +1,4 @@
-/* MUSTEK Menu Monitor — de */
+/* UPS Menu Bar — de */
 "Mains" = "Stromnetz";
 "Input" = "Eingang";
 "Output" = "Ausgang";
@@ -66,7 +66,7 @@
 "Check" = "Prüfen";
 "Save" = "Speichern";
 "Close" = "Schließen";
-"MUSTEK Menu Monitor Settings" = "MUSTEK Menu Monitor – Einstellungen";
+"UPS Menu Bar Settings" = "UPS Menu Bar – Einstellungen";
 "UPS is not configured. Enter the NUT server and UPS name, then click Check or Save." = "USV noch nicht konfiguriert. NUT-Server und USV-Namen eingeben, dann „Prüfen“ oder „Speichern“ wählen.";
 "W; leave empty if unknown" = "W; bei unbekannter Leistung leer lassen";
 "UPS name in ups.conf" = "USV-Name in ups.conf";

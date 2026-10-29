@@ -1,3 +1,24 @@
+# Release notes — v0.2.0 (not released)
+
+Local candidate. Not tagged, built for distribution or published.
+
+## Changes from v0.1.4
+
+- Renamed from MUSTEK Menu Monitor to **UPS Menu Bar**: display name, settings
+  window title, menu header, Swift package and executable `UPSMenuBar`, app
+  bundle `UPS Menu Bar.app`, build scripts and documentation, in all four
+  languages. The menu header now reads "UPS — <state>" without a vendor name.
+- Kept for compatibility: bundle IDs `local.mustek.menumanager` and
+  `local.mustek.menumanager.qa`, data directory `MustekMenuMonitor`, QA settings
+  suite and the LaunchAgent label `local.mustek.menumonitor`. Existing settings
+  and history are used unchanged. A LaunchAgent must be pointed at the new
+  executable path when updating (see INSTALL.md).
+- `upsc -j` JSON output is read when available; values with quotes,
+  backslashes, colons or newlines stay intact. Plain output is used for an upsc
+  without `-j` (until restart, per upsc path), for one poll after damaged JSON,
+  and never because of a connection failure.
+- Not affiliated with United Parcel Service or the Network UPS Tools project.
+
 # Release notes — v0.1.4
 
 Released 2026-10-26: Apple Silicon (arm64) app for macOS 13+, ad hoc signed

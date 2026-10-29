@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 /// `upsc -j` parsing and the fallback to plain output. Fake upsc scripts only; no device.
 final class UpscJSONTests: XCTestCase {

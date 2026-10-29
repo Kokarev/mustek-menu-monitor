@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 /// Runner whose calls stay pending until the test answers them, to reproduce late responses.
 final class ControlledRunner: @unchecked Sendable {
@@ -141,7 +141,7 @@ final class ControlledRunner: @unchecked Sendable {
         XCTAssertEqual(calls, [])
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.csv").path))
         let model = MenuModel.make(monitor.snapshot())
-        XCTAssertEqual(model.header, "MUSTEK \(L10n.tr("UPS")) — ⚙️ \(L10n.tr("UPS not configured"))")
+        XCTAssertEqual(model.header, "\(L10n.tr("UPS")) — ⚙️ \(L10n.tr("UPS not configured"))")
         XCTAssertEqual(model.statusBarTitle, "⚠️ \(L10n.tr("UPS")) —")
         XCTAssertEqual(model.sections.flatMap(\.rows).first { $0.label == "NUT" }?.value, L10n.tr("not configured"))
 

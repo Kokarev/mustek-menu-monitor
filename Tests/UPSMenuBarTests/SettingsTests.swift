@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 final class SettingsValidationTests: XCTestCase {
     private var directory: URL!

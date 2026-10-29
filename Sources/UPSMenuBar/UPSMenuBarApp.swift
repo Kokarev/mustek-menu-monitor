@@ -54,7 +54,7 @@ import AppKit
     }
 }
 
-@main enum MustekMenuMonitorApp {
+@main enum UPSMenuBarApp {
     @MainActor static func main() {
         // Single instance: taken before the monitor exists, so a second copy never reads or writes history.
         let lock: InstanceLock
@@ -62,10 +62,10 @@ import AppKit
         case .acquired(let acquired):
             lock = acquired
         case .heldElsewhere:
-            FileHandle.standardError.write(Data(("MustekMenuMonitor: " + L10n.tr("Another instance is running; exiting.") + "\n").utf8))
+            FileHandle.standardError.write(Data(("UPSMenuBar: " + L10n.tr("Another instance is running; exiting.") + "\n").utf8))
             exit(0)
         case .unavailable(let error):
-            FileHandle.standardError.write(Data(("MustekMenuMonitor: " + L10n.format("Instance lock unavailable (%@); exiting.", String(cString: strerror(error))) + "\n").utf8))
+            FileHandle.standardError.write(Data(("UPSMenuBar: " + L10n.format("Instance lock unavailable (%@); exiting.", String(cString: strerror(error))) + "\n").utf8))
             exit(1)
         }
         let app = NSApplication.shared

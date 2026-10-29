@@ -4,12 +4,12 @@
 <dict>
     <key>Label</key><string>local.mustek.menumonitor</string>
     <key>ProgramArguments</key>
-    <array><string>__HOME__/Applications/MustekMenuMonitor.app/Contents/MacOS/MustekMenuMonitor</string></array>
+    <array><string>__HOME__/Applications/UPS Menu Bar.app/Contents/MacOS/UPSMenuBar</string></array>
     <key>RunAtLoad</key><true/>
     <key>KeepAlive</key><false/>
     <key>LimitLoadToSessionType</key><string>Aqua</string>
     <key>ProcessType</key><string>Interactive</string>
-    <key>StandardOutPath</key><string>__HOME__/Library/Logs/MustekMenuMonitor.log</string>
-    <key>StandardErrorPath</key><string>__HOME__/Library/Logs/MustekMenuMonitor.log</string>
+    <key>StandardOutPath</key><string>__HOME__/Library/Logs/UPSMenuBar.log</string>
+    <key>StandardErrorPath</key><string>__HOME__/Library/Logs/UPSMenuBar.log</string>
 </dict>
 </plist>

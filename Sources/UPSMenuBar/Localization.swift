@@ -6,7 +6,7 @@ struct AppLocalization {
     static let supported = ["en", "uk", "de", "ru"]
     static let resources: Bundle = {
         // Installed .app: do not depend on SwiftPM's absolute build-directory fallback.
-        if let url = Bundle.main.url(forResource: "MustekMenuMonitor_MustekMenuMonitor", withExtension: "bundle"),
+        if let url = Bundle.main.url(forResource: "UPSMenuBar_UPSMenuBar", withExtension: "bundle"),
            let bundle = Bundle(url: url) { return bundle }
         return Bundle.module
     }()

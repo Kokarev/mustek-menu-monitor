@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 /// Outage events across a change of UPS, at runtime and between launches.
 @MainActor final class OutageBoundaryTests: XCTestCase {

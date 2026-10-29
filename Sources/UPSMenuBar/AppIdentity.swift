@@ -1,10 +1,12 @@
 import Foundation
 
 /// Where this build keeps its data and settings. The QA build (`build-qa.sh`, compiled with
-/// `-DMUSTEK_QA`) uses its own directory, lock and settings suite, so it can run beside an
+/// `-DUPSMENUBAR_QA`) uses its own directory, lock and settings suite, so it can run beside an
 /// installed copy. The public build contains no QA values and reads no environment overrides.
+/// The data directory, bundle IDs and settings suite keep the names used before the v0.2.0
+/// rename to UPS Menu Bar, so settings and history of an existing installation carry over.
 enum AppIdentity {
-    #if MUSTEK_QA
+    #if UPSMENUBAR_QA
     static let isQA = true
     static let dataDirectoryName = "MustekMenuMonitor-QA"
     static let titlePrefix = "QA · "

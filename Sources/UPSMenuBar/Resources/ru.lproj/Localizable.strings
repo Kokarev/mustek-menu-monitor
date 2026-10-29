@@ -1,4 +1,4 @@
-/* MUSTEK Menu Monitor — ru */
+/* UPS Menu Bar — ru */
 "Mains" = "Электросеть";
 "Input" = "Вход";
 "Output" = "Выход";
@@ -66,7 +66,7 @@
 "Check" = "Проверить";
 "Save" = "Сохранить";
 "Close" = "Закрыть";
-"MUSTEK Menu Monitor Settings" = "Настройки MUSTEK Menu Monitor";
+"UPS Menu Bar Settings" = "Настройки UPS Menu Bar";
 "UPS is not configured. Enter the NUT server and UPS name, then click Check or Save." = "ИБП ещё не настроен. Укажите сервер NUT и имя ИБП, затем нажмите «Проверить» или «Сохранить».";
 "W; leave empty if unknown" = "Вт; пусто — мощность неизвестна";
 "UPS name in ups.conf" = "имя ИБП в ups.conf";

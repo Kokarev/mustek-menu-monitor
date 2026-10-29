@@ -1,14 +1,23 @@
-# MUSTEK Menu Monitor v0.1.4
+# UPS Menu Bar v0.2.0
 
-A lightweight native macOS menu bar UPS monitor powered by Network UPS Tools
-(NUT). It reads an existing NUT server through the separately installed `upsc`
-client. The interface supports English, Ukrainian, German and Russian using
+A lightweight native macOS menu bar monitor for uninterruptible power supplies
+(UPS) served by Network UPS Tools (NUT). It reads an existing NUT server through
+the separately installed `upsc` client, preferring its JSON output (`upsc -j`)
+and falling back to plain output for NUT versions without it.
+
+UPS Menu Bar is an independent project. It is not affiliated with, endorsed by
+or sponsored by United Parcel Service or the Network UPS Tools project. Versions
+up to v0.1.4 were published as MUSTEK Menu Monitor; v0.2.0 keeps their bundle ID,
+settings and data directory, so an update carries existing settings and history over.
+
+The interface The interface supports English, Ukrainian, German and Russian using
 macOS language preferences, including the app-specific language set in System
 Settings. English is the base and fallback language when no supported language
 is preferred. There is no in-app language selector. Displayed numbers and
 dates use the system locale; NUT codes and CSV serialization stay unchanged.
 
-**v0.1.4** is available as an Apple Silicon ZIP from
+**v0.2.0** is not released yet; build it from source. The latest published
+release is v0.1.4 (as MUSTEK Menu Monitor) on
 [GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases).
 
 ## Features
@@ -17,6 +26,9 @@ dates use the system locale; NUT codes and CSV serialization stay unchanged.
   and optional nominal UPS output power in watts.
 - UPS discovery, connection check and save/apply after a successful check.
   First launch opens Settings when no UPS name is saved.
+- `upsc -j` JSON parsing with escaped values; plain `upsc` output for older NUT.
+  An upsc without `-j` switches to plain output until restart, damaged JSON
+  falls back for one poll only, and a connection failure never switches.
 - Automatic `upsc` lookup at standard Homebrew/MacPorts locations and a
   diagnostic version check. An unusable manual path is reported, not replaced.
 - OL/OB/LB status, input/output voltage, frequency, load, temperature and link
@@ -82,17 +94,18 @@ GUI checks on every supported OS.
 
 ## Data and identities
 
-Production version **0.1.4**:
+Production version **0.2.0** (identifiers kept from v0.1.x for compatibility):
 
-- Bundle ID: `local.mustek.menumanager`; display name: **MUSTEK Menu Monitor**.
+- Bundle ID: `local.mustek.menumanager`; display name: **UPS Menu Bar**;
+  app `UPS Menu Bar.app`, executable `UPSMenuBar`.
 - Data: `~/Library/Application Support/MustekMenuMonitor/`.
 - Settings: standard UserDefaults for the production application domain.
 
-QA version **0.1.4** (developer use only):
+QA version **0.2.0** (developer use only):
 
-- Bundle ID: `local.mustek.menumanager.qa`; display name: **MUSTEK QA**.
+- Bundle ID: `local.mustek.menumanager.qa`; display name: **UPS Menu Bar QA**.
 - Data: `~/Library/Application Support/MustekMenuMonitor-QA/`.
-- Settings suite: `local.mustek.menumanager.qa.settings`; compiled with `MUSTEK_QA`.
+- Settings suite: `local.mustek.menumanager.qa.settings`; compiled with `UPSMENUBAR_QA`.
 
 Each data directory contains `history.csv`, `power_events.csv`, the
 `open_outage_ups.txt` ownership sidecar when an outage is open, and `.lock`.

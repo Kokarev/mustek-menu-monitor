@@ -1,5 +1,5 @@
 import XCTest
-@testable import MustekMenuMonitor
+@testable import UPSMenuBar
 
 /// Records upsc calls and answers them from a table; no process is started.
 final class FakeExecutor: @unchecked Sendable {
@@ -224,7 +224,7 @@ final class FakeExecutor: @unchecked Sendable {
 final class AppIdentityTests: XCTestCase {
     func testBuildIdentity() {
         let directory = Monitor.defaultDirectory.path
-        #if MUSTEK_QA
+        #if UPSMENUBAR_QA
         XCTAssertTrue(AppIdentity.isQA)
         XCTAssertEqual(AppIdentity.dataDirectoryName, "MustekMenuMonitor-QA")
         XCTAssertEqual(AppIdentity.settingsSuite, "local.mustek.menumanager.qa.settings")
