@@ -1,6 +1,8 @@
-# Release notes — v0.2.0 (not released)
+# Release notes — v0.2.0
 
-Local candidate. Not tagged, built for distribution or published.
+Apple Silicon (arm64) app for macOS 13+, ad hoc signed (not Developer ID
+signed or notarized). Download it from
+[GitHub Releases](https://github.com/Kokarev/ups-menu-bar/releases).
 
 ## Changes from v0.1.4
 
@@ -23,7 +25,7 @@ Local candidate. Not tagged, built for distribution or published.
 
 Released 2026-10-26: Apple Silicon (arm64) app for macOS 13+, ad hoc signed
 (not Developer ID signed or notarized). Download it from
-[GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases).
+[GitHub Releases](https://github.com/Kokarev/ups-menu-bar/releases).
 
 ## Changes from v0.1.3
 

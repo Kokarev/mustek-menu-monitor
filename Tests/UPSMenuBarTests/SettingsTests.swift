@@ -305,8 +305,8 @@ final class SettingsStoreTests: XCTestCase {
         for key in SettingsStore.Key.allCases {
             XCTAssertNil(UserDefaults.standard.persistentDomain(forName: Bundle.main.bundleIdentifier ?? "")?[key.rawValue])
         }
+        // The installed app may have saved settings on this Mac: compare, do not expect an empty domain.
         let after = UserDefaults.standard.persistentDomain(forName: Self.productionDomain) as NSDictionary?
         XCTAssertEqual(after, production)
-        for key in SettingsStore.Key.allCases { XCTAssertNil(after?[key.rawValue]) }
     }
 }

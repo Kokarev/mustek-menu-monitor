@@ -18,8 +18,8 @@ control credentials. Required telemetry is `ups.status`, `input.voltage` and
 ## Install from the release ZIP
 
 1. Download `UPSMenuBar-v0.2.0-macos-arm64.zip` and `SHA256SUMS` from the
-   v0.2.0 release on [GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases)
-   once it is published; until then build the app from source (see [BUILD.md](BUILD.md)).
+   v0.2.0 release on [GitHub Releases](https://github.com/Kokarev/ups-menu-bar/releases),
+   or build the app from source (see [BUILD.md](BUILD.md)).
 2. Run `shasum -a 256 UPSMenuBar-v0.2.0-macos-arm64.zip` and compare the
    result with the ZIP line in `SHA256SUMS`. Extract it in Finder and locate `UPS Menu Bar.app`.
 3. Ensure an older production copy is not running. For an existing installation,

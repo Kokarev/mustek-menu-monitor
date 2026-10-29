@@ -10,15 +10,16 @@ or sponsored by United Parcel Service or the Network UPS Tools project. Versions
 up to v0.1.4 were published as MUSTEK Menu Monitor; v0.2.0 keeps their bundle ID,
 settings and data directory, so an update carries existing settings and history over.
 
-The interface The interface supports English, Ukrainian, German and Russian using
+The interface supports English, Ukrainian, German and Russian using
 macOS language preferences, including the app-specific language set in System
 Settings. English is the base and fallback language when no supported language
 is preferred. There is no in-app language selector. Displayed numbers and
 dates use the system locale; NUT codes and CSV serialization stay unchanged.
 
-**v0.2.0** is not released yet; build it from source. The latest published
-release is v0.1.4 (as MUSTEK Menu Monitor) on
-[GitHub Releases](https://github.com/Kokarev/mustek-menu-monitor/releases).
+Download the Apple Silicon app from
+[GitHub Releases](https://github.com/Kokarev/ups-menu-bar/releases), or build
+it from source. Earlier releases (v0.1.4 and older, as MUSTEK Menu Monitor)
+remain available on the same page.
 
 ## Features
 
