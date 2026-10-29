@@ -29,14 +29,11 @@ struct Reading {
     /// Values without which a `upsc` response does not count as a successful update.
     static let requiredKeys = ["ups.status", "input.voltage", "ups.load"]
 
-    /// Parses `upsc` output. Returns nil for an empty or malformed response,
+    /// Parses `upsc` output in either format: the JSON object of `upsc -j` or plain
+    /// `key: value` lines. Returns nil for an empty or malformed response,
     /// or one that lacks any of `requiredKeys` as a usable value.
     static func parse(_ raw: String, at timestamp: Date) -> Reading? {
-        var data: [String: String] = [:]
-        for line in raw.split(separator: "\n") {
-            guard let index = line.firstIndex(of: ":") else { continue }
-            data[String(line[..<index])] = String(line[line.index(after: index)...]).trimmingCharacters(in: .whitespaces)
-        }
+        let data = jsonObject(raw) ?? textObject(raw)
         guard let status = data["ups.status"], !status.isEmpty else { return nil }
         func number(_ key: String) -> Double? {
             guard let value = data[key], let n = Double(value), n.isFinite else { return nil }
@@ -49,5 +46,35 @@ struct Reading {
                        batteryRuntime: number("battery.runtime"),
                        temperature: number("ups.temperature"), frequency: number("input.frequency"),
                        driverState: data["driver.state"] ?? "—")
+    }
+
+    /// The flat object printed by `upsc -j`, or nil when `raw` is not a JSON object.
+    /// Quotes, backslashes and newlines inside values arrive already unescaped. Numbers are
+    /// accepted next to strings (upsc prints strings today); nested values are ignored.
+    static func jsonObject(_ raw: String) -> [String: String]? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("{"),
+              let object = try? JSONSerialization.jsonObject(with: Data(trimmed.utf8)) as? [String: Any]
+        else { return nil }
+        var data: [String: String] = [:]
+        for (key, value) in object {
+            switch value {
+            case let text as String: data[key] = text
+            case let number as NSNumber: data[key] = number.stringValue
+            default: continue
+            }
+        }
+        return data
+    }
+
+    /// Plain `key: value` lines. The key ends at the first colon, so colons inside values are kept;
+    /// a value cannot span lines. CR LF line ends are accepted.
+    static func textObject(_ raw: String) -> [String: String] {
+        var data: [String: String] = [:]
+        for line in raw.split(whereSeparator: \.isNewline) {
+            guard let index = line.firstIndex(of: ":") else { continue }
+            data[String(line[..<index])] = String(line[line.index(after: index)...]).trimmingCharacters(in: .whitespaces)
+        }
+        return data
     }
 }

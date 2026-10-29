@@ -119,12 +119,17 @@ final class ControlledRunner: @unchecked Sendable {
                               historyDirectory: directory, locator: locator)
         XCTAssertEqual(monitor.link, .waiting)
         await monitor.poll()?.value
-        XCTAssertEqual(calls, ["1", "mustek@127.0.0.1:3493"])
+        // The first poll probes `upsc -j`; this fake answers plain text to it, so the poll falls
+        // back once. In both calls the target is one argument, never split or shell-expanded.
+        XCTAssertEqual(calls, ["2", "-j", "mustek@127.0.0.1:3493", "1", "mustek@127.0.0.1:3493"])
         XCTAssertEqual(monitor.link, .ok)
         let rows = lines("history.csv")
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0] + "\n", Monitor.historyHeader)
         XCTAssertEqual(rows[1].split(separator: ",", omittingEmptySubsequences: false).count, 8)
+        await monitor.poll()?.value
+        XCTAssertEqual(calls.count, 7, "later polls use plain output only")
+        XCTAssertEqual(Array(calls.suffix(2)), ["1", "mustek@127.0.0.1:3493"])
     }
 
     func testNotConfiguredNeverRunsUpscOrWritesHistory() async throws {
@@ -157,7 +162,7 @@ final class ControlledRunner: @unchecked Sendable {
         XCTAssertEqual(monitor.link, .notConfigured)
         XCTAssertNil(monitor.reading)
         XCTAssertNil(monitor.poll())
-        XCTAssertEqual(calls.count, 2)
+        XCTAssertEqual(calls.count, 5, "one -j probe plus one plain call, nothing after unconfiguring")
         XCTAssertEqual(lines("history.csv").count, 2)
     }
 
